@@ -30,5 +30,8 @@ This agent can be used to<br>
 For now, supported secret types are
 * ImagePullSecrets
 * TLS
-*  Opaque 
+* Opaque 
+
+
+![Alt text](Images/create-namespace-secrets.png?raw=true "Title")
 
