@@ -10,12 +10,11 @@ There are usecases where we would need secrets from Hashi vault but those secret
 * ImagePullSecrets <br>
      *  The secrets that are required to connect to artifactory to pull images <br>
 * Operator secrets <br>
-        *   Some vendor provided operators require Openshift/K8 secrets to function and do not provide an alternative mechansim for injecting 
+     *   Some vendor provided operators require Openshift/K8 secrets to function and do not provide an alternative mechansim for injecting 
             confidential data <br>
 * Application secrets <br>
-        *   Some legacy applications that can not be modified to use/connect to vault 
-    applciations <br>
-*   Based on architecture if the applictaions needs to be Hashi vault agnostic
+     *   Some legacy applications that can not be modified to use/connect to vault applciations <br>
+     *   Based on architecture if the applictaions needs to be Hashi vault agnostic
         
 
 ## How does it work?
