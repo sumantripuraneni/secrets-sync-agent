@@ -6,6 +6,7 @@ The hvault-ocp-secrets-sync can be used to create and sync secrets from Hashicor
 ## Motivation 
 
 There are usecases where we would need secrets from Hashi vault but those secrets needs to be in OpenShift
+
     * ImagePullSecrets
         *  The secrets that are required to connect to artifactory to pull images 
     * Operator secrets
