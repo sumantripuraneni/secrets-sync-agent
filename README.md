@@ -5,7 +5,7 @@ The hvault-ocp-secrets-sync can be used to create and update/sync secrets in Ope
 
 ## Motivation 
 
-There are usecases where we would need secrets from Hashi vault but those secrets needs to be available OpenShift<br>
+There are usecases where we would need secrets from Hashi vault but those secrets needs to be available in OpenShift<br>
 
 * ImagePullSecrets <br>
      *  The secrets that are required to connect to artifactory to pull images <br>
