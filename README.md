@@ -35,3 +35,35 @@ For now, supported secret types are
 
 ![Alt text](Images/create-namespace-secrets.png?raw=true "Title")
 
+
+```yaml
+---
+
+kube-secrets:
+  - vault-secret-path: v1/secret/data/appsecrets
+    kubernetes-secret: demo-appsecrets
+    secret-type: opaque
+
+  - vault-secret-path: v1/secret/data/nonprod-registry
+    kubernetes-secret: demo-nonprod-registry
+    secret-type: dockercfg
+
+  - vault-secret-path: v1/secret/data/prod-registry
+    kubernetes-secret: demo-nonprod-registry
+    secret-type: dockercfg    
+
+  - vault-secret-path: v1/secret/data/appcerts
+    kubernetes-secret: demo-appcerts
+    secret-type: tls
+
+
+##########################
+# Vault connection details
+###########################
+
+hashi-vault-url: http://10.24.0.1:8200/
+vault-login-url-endpoint: v1/auth/suman-hvault-01/login
+vault-secrets-refresh-seconds: 3000
+vault-kube-auth-role-name: suman-hvault-01
+```
+
