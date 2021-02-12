@@ -1,11 +1,11 @@
 # hvault-ocp-secrets-sync
 
-The hvault-ocp-secrets-sync can be used to create and update/sync secrets in OpenShift from Hashicorp vault. This can also be used as an init/sidecar container to provide secrets to application container.
+The hvault-ocp-secrets-sync can be used to create and update/sync secrets in OpenShift Container Platform from Hashicorp vault. This can also be used as an init or a sidecar container to provide secrets to application container.
 
 
 ## Motivation 
 
-There are usecases where we would need secrets from Hashi vault but those secrets needs to be available in OpenShift<br>
+There are usecases where we would need secrets from Hashi vault but those secrets needs to be available in OpenShift Container Platform<br>
 
 * ImagePullSecrets <br>
      *  The secrets that are required to connect to artifactory to pull images <br>
@@ -18,6 +18,7 @@ There are usecases where we would need secrets from Hashi vault but those secret
         
 
 ## How does it work?
+
 ##### OpenShift secrets with in a Namespace
 
 This agent will perform the action of connecting to vault and retrieving secrets. It will be injected with a configmap which will give it instructions on - 
@@ -38,7 +39,6 @@ For now, supported secret types are
 
 ```yaml
 ---
-
 kube-secrets:
   - vault-secret-path: v1/secret/data/appsecrets
     kubernetes-secret: demo-appsecrets
@@ -55,7 +55,6 @@ kube-secrets:
   - vault-secret-path: v1/secret/data/appcerts
     kubernetes-secret: demo-appcerts
     secret-type: tls
-
 
 ##########################
 # Vault connection details
@@ -79,7 +78,6 @@ This agent can also be used to create secrets in a different namespace as well, 
 
 ```yaml
 ---
-
 kube-secrets:
 
   - vault-secret-path: v1/secret/data/nonprod-registry
@@ -92,7 +90,6 @@ kube-secrets:
     kubernetes-secret: splunk-hec-token
     secret-type: opaque
     namespace: splunk-connect
-
 
 ##########################
 # Vault connection details
