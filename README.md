@@ -20,7 +20,7 @@ There are usecases where we would need secrets from Hashi vault but those secret
 ## How does it work?
 ##### OpenShift secrets with in a Namespace
 
-This agent will perform the action of actually connecting to vault and retrieving secrets. It will be injected with a configmap which will give it instructions on - 
+This agent will perform the action of connecting to vault and retrieving secrets. It will be injected with a configmap which will give it instructions on - 
 hashi vault connection details, what secrets to get from Hashi vault, type of secret to create and name of the secret in OpenShift.
 
 This agent can be used to<br>
@@ -66,4 +66,10 @@ vault-login-url-endpoint: v1/auth/suman-hvault-01/login
 vault-secrets-refresh-seconds: 3000
 vault-kube-auth-role-name: suman-hvault-01
 ```
+
+##### OpenShift secrets with in a different Namespace
+
+This agent can also be used to create secrets in a different namespace as well, provided serviceaccount used with appropriate rbac policy.
+
+**Recommeded to use a namespace scoped , unless for specirfic reasons or for automations
 
