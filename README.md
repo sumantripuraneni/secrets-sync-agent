@@ -33,7 +33,7 @@ For now, supported secret types are
 * Opaque 
 
 
-![Alt text](Images/create-namespace-secrets.png?raw=true "Title")
+![Alt text](Images/create-namespace-secrets.png?raw=true "Create secret in a namespace")
 
 
 ```yaml
@@ -73,3 +73,106 @@ This agent can also be used to create secrets in a different namespace as well, 
 
 **Recommeded to use a namespace scoped , unless for specirfic reasons or for automations
 
+
+![Alt text](Images/create-secrets-in-different-namespace.png?raw=true "Create secret in a different namespace ")
+
+
+```yaml
+---
+
+kube-secrets:
+
+  - vault-secret-path: v1/secret/data/nonprod-registry
+    kubernetes-secret: demo-nonprod-registry
+    secret-type: dockercfg
+    namespace: splunk-connect
+
+
+  - vault-secret-path: v1/secret/data/splunk-hec-token
+    kubernetes-secret: splunk-hec-token
+    secret-type: opaque
+    namespace: splunk-connect
+
+
+##########################
+# Vault connection details
+###########################
+
+hashi-vault-url: http://10.24.0.1:8200/
+vault-login-url-endpoint: v1/auth/suman-hvault-01/login
+vault-secrets-refresh-seconds: 3000
+vault-kube-auth-role-name: suman-hvault-01
+```
+
+##### Init/Sidecar container
+
+This agent can also be used as an init or sidecar conatiner, which will connect to Hashi vault, retrieve secrets and creates file based secrets.  Agent will be 
+injected with a configmap which will give it instructions on - hashi vault connection details, what secrets to get from Hashi vault (path), type of file format and where to place them. The agent will closely emulate the functionality of hashi vault agent. The most common pattern is to use this agent as a init-container for an application, at startup this agent will grab secrets from vault and place them in a emptyDir (suggested: memory medium) which is mounted to both the containers. If the secrets needs to be updated when they chnage in thevault without restarting an application conatienr, then this agent can also be used a side car, which will keep the secrets in the emptyDir mount point upto date. However, its application responsibility to act when the secrets are changed in emptyDir mount point.
+
+
+![Alt text](Images/init-or-sidecar-container.png?raw=true "Init or side car container")
+
+
+**Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk
+
+```yaml
+volumes:
+  - name: application-secrets
+    emptyDir:
+      medium: Memory
+```
+
+Agent can provide scerets in various file formats such as
+*  Json 
+*  Yaml
+*  Ini
+*  env(KV pairs)
+*  a single value to file based on selected key
+*  Jinja2 template
+
+```yaml
+---
+file-secrets:
+
+   -   vault-secret-path: v1/secret/data/appsecrets
+       to-file-name: /root/suman/working/test_dir/appsecrets.ini
+       file-format: ini
+       ini-section-name: app-secrets
+
+   -   vault-secret-path: v1/secret/data/appsecrets
+       to-file-name: /root/suman/working/test_dir/appsecrets.json
+       file-format: json
+
+   -   vault-secret-path: v1/secret/data/appsecrets
+       to-file-name: /root/suman/working/test_dir/appsecrets.yml
+       file-format: yaml
+
+   -   vault-secret-path: v1/secret/data/appsecrets
+       to-file-name: /root/suman/working/test_dir/appsecrets.env
+       file-format: env
+
+   -   vault-secret-path: v1/secret/data/appsecrets
+       to-file-name: /root/suman/working/test_dir/appsecrets.txt
+       file-format: key
+       key: key1
+
+   -   vault-secret-path: v1/secret/data/appsecrets
+       to-file-name: /root/suman/working/test_dir/properties.ini
+       template-as-configmap: template-testing
+       
+##########################
+# Vault connection details
+###########################
+
+hashi-vault-url: http://10.24.0.1:8200/
+vault-login-url-endpoint: v1/auth/suman-hvault-01/login
+vault-secrets-refresh-seconds: 3000
+vault-kube-auth-role-name: suman-hvault-01
+```
+
+##### Jinja2 templating ConfigMap
+```
+spring.datasource.url=jdbc:mysql://{{ mysql_host }}:3306/{{ mysql_db }}
+spring.datasource.username={{ mysql_user }}
+spring.datasource.password={{ mysql_password }}
+```
