@@ -1,6 +1,6 @@
 # hvault-ocp-secrets-sync
 
-The hvault-ocp-secrets-sync can be used to create and sync secrets from Hashicorp vault to OpenShift. This can also be used as an init/sidecar container to provide secrets to application container.
+The hvault-ocp-secrets-sync can be used to create and update/sync secrets in OpenShift from Hashicorp vault. This can also be used as an init/sidecar container to provide secrets to application container.
 
 
 ## Motivation 
