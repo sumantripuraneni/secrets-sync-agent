@@ -32,7 +32,3 @@ For now, supported secret types are
 * TLS
 *  Opaque 
 
-* Bullet list <br>
-     * Nested bullet <br>
-           * Sub-nested bullet etc <br>
-* Bullet list item 2
