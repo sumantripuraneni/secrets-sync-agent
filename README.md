@@ -1,0 +1,1 @@
+# hvault-ocp-secrets-sync
