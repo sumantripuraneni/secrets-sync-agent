@@ -5,7 +5,7 @@ The hvault-ocp-secrets-sync can be used to create and sync secrets from Hashicor
 
 ## Motivation 
 
-There are usecases where we would need secrets from Hashi vault but those secrets needs to be in OpenShift<br>
+There are usecases where we would need secrets from Hashi vault but those secrets needs to be available OpenShift<br>
 
 * ImagePullSecrets <br>
      *  The secrets that are required to connect to artifactory to pull images <br>
@@ -13,7 +13,7 @@ There are usecases where we would need secrets from Hashi vault but those secret
      *   Some vendor provided operators require Openshift/K8 secrets to function and do not provide an alternative mechansim for injecting 
             confidential data <br>
 * Application secrets <br>
-     *   Some legacy applications that can not be modified to use/connect to vault applciations <br>
+     *   Some legacy applications that can not be modified to use/connect to Hashi vault <br>
      *   Based on architecture if the applictaions needs to be Hashi vault agnostic
         
 
@@ -23,14 +23,14 @@ There are usecases where we would need secrets from Hashi vault but those secret
 This agent will perform the action of actually connecting to vault and retrieving secrets. It will be injected with a configmap which will give it instructions on - 
 hashi vault connection details, what secrets to get from Hashi vault, type of secret to create and name of the secret in OpenShift.
 
-This agent can be used to
-    * Create secrets within a namespace as soon as namespace is created
-    * Peridically update/sync namespace secrets from Hashi vault 
+This agent can be used to<br>
+* Create secrets within a namespace as soon as namespace is created
+* Peridically update/sync namespace secrets from Hashi vault 
 
 For now, supported secret types are
-    * ImagePullSecrets
-    * TLS
-    * Opaque 
+* ImagePullSecrets
+* TLS
+*  Opaque 
 
 * Bullet list <br>
      * Nested bullet <br>
