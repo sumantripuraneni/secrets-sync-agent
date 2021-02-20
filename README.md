@@ -28,10 +28,12 @@ This agent can be used to<br>
 * Create secrets within a namespace as soon as namespace is created
 * Peridically update/sync namespace secrets from Hashi vault 
 
-For now, supported secret types are
-* ImagePullSecrets
-* TLS
+Supported secret types are:
+* ImagePull Secrets
+* TLS Secrets
+* SSH Auth Secrets
 * Opaque 
+* Opaque secrets based on a template (Jinja2)
 
 
 ![Alt text](Images/create-namespace-secrets.png?raw=true "Create secret in a namespace")
