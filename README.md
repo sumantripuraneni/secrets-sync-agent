@@ -1,6 +1,6 @@
-# hvault-ocp-secrets-sync
+# secrets-sync-agent
 
-The hvault-ocp-secrets-sync can be used to create and update/sync secrets in OpenShift Container Platform with Hashicorp vault secrets. This can also be used as an init or a sidecar container to provide secrets to an application container.
+The secrets-sync-agent can be used to create and update/sync secrets in OpenShift Container Platform with Hashicorp vault secrets. This can also be used as an init or a sidecar container to provide secrets to an application container.
 
 
 ## Motivation 
@@ -28,7 +28,7 @@ We can provide connection and secret retrieval information in multiple ways
 
 
 | Name              | Default Value | Description |
-| ----------------- | ------------- | ----------- |
+| :--- | :---  | :---  |
 | DEFAULT_CONNECTION_INFO_FILE | /etc/secrets_sync_agent/connection_info/vault_connection_info.yaml | Users need to mount the connection information configuration file in this location and program will automatically pick this file|
 | DEFAULT_SECRETS_RETRIEVAL_INFO_FILE | /etc/secrets_sync_agent/secrets_info/vault_secrets_info.yaml | Users need to mount the secrets retrieval information configuration file in this location and program will automatically pick this file|
 | VAULT_CONNECTION_INFO_CONFIG_FILE | - | User can mount connection information configuration file to any location and provide absolute file location|
