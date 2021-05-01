@@ -30,11 +30,7 @@ We can provide connection and secret retrieval information in multiple ways
 | Name              | Default Value | Description |
 | ----------------- | ------------- | ----------- |
 | DEFAULT_CONNECTION_INFO_FILE | /etc/secrets_sync_agent/connection_info/vault_connection_info.yaml| Default location of connection information file. Users need to mount the connection information configuration file in this location and program will automatically pick this file|
-| DEFAULT_SECRETS_RETRIEVAL_INFO_FILE | /etc/secrets_sync_agent/secrets_info/vault_secrets_info.yaml | Default location of secrets retrieval information file Users need to mount the secrets retrieval information configuration file in this location and program will automatically pick this file|
-| VAULT_CONNECTION_INFO_CONFIG_FILE | - | User can mount connection information configuration file to any location and provide absolute file path and name|
-| VAULT_SECRETS_RETRIEVAL_INFO_CONFIG_FILE | - | User can mount secrets retrieval information configuration file to any location and provide absolute file path and name|
-| VAULT_CONNECTION_INFO_CONFIGMAP_NAME | - | Instead of mounting users can directly provide the connection information configmap name. This requires API access to read configmap |
-| VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME | - | Instead of mounting users can directly provide the secrets retrieval information configmap name. This requires API access to read configmap|
+
 
 
 ###### Variable Definition Precendence
