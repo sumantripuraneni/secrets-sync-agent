@@ -32,6 +32,7 @@ We can provide connection and secret retrieval information in multiple ways
 | DEFAULT_CONNECTION_INFO_FILE | /etc/secrets_sync_agent/connection_info/vault_connection_info.yaml | Default location of connection information file. Users need to mount the connection information configuration file in this location and program will automatically pick this file|
 | DEFAULT_SECRETS_RETRIEVAL_INFO_FILE | /etc/secrets_sync_agent/secrets_info/vault_secrets_info.yaml | Default location of secrets retrieval information file Users need to mount the secrets retrieval information configuration file in this location and program will automatically pick this file|
 | VAULT_CONNECTION_INFO_CONFIG_FILE | - | User can mount connection information configuration file to any location and provide absolute file path and name|
+| VAULT_SECRETS_RETRIEVAL_INFO_CONFIG_FILE | - | User can mount secrets retrieval information configuration file to any location and provide absolute file path and name|
 
 
 
