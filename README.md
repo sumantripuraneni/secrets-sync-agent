@@ -150,7 +150,7 @@ KUBE_SECRETS:
     NAMESPACE: splunk-connect
 ```
 
-##### Init & Sidecar container
+#### Secrets in Application Pod 
 
 This agent can also be used as an init or sidecar conatiner, similar to creating secrets in OpenShift/K8 platform, this agent needs two configMaps, however the second ConfigMap would be different. Based on the information provided through configMap's, agents connects to Hashi vault, retrieve secrets and creates file(s) based secrets in a shared volumes for application (main) container to consume.
 
@@ -209,15 +209,14 @@ spring.datasource.password={{ values['mysql_password'] }}
 ```
 
 
-###### Init Container Mode
+##### Init Container Mode
 To use this agent as an init container, we simply need to update application Deployment or DeploymentConfig YAML adding "secret-sync-agent" as an init container to application pod. 
 
-< Insert Diagram here> and point to an example
 
 ![Alt text](images/init-container.jpg "Init container")
 
 
-###### SideCar Container Mode
+##### SideCar Container Mode
 This is similar to an init container mode mentioned abve, but the container continues to run alongside the application container after startup, in what is known as a sidecar container pattern. It will continue to peridically read the secrets from hashi Vault and if they have been changed, it will update thh files it wrote with the new secret value. Application containers should be able to read the secrets from files on shared volume whilst runninng without restarting. Also, as both side car container and main (application) container start at the same time, secrets might not be available ffor main (application) container, so application should be able to handle this. 
 
 ![Alt text](images/side-car-container.jpg "Side car container")
