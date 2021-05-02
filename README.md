@@ -111,11 +111,11 @@ Agent loads configuration in the following order, with later sources taking prec
 * ConfigMap (VAULT_CONNECTION_INFO_CONFIGMAP_NAME and VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME) 
 
 
-##### OpenShift secrets with in a Namespace
+##### OpenShift/K8 secrets with in a Namespace
 
 This agent can be used to create/refresh OpenShift/K8 platform secrets in the sanem namespace. Aformentioned two configMaps are to create/refresh secrets in a namespace where this agent is running.
 
-<<Insert image here>>>
+< Insert image here >
 
 
 ![Alt text](Images/create-namespace-secrets.png?raw=true "Create secret in a namespace")
@@ -148,14 +148,9 @@ KUBE_SECRETS:
     NAMESPACE: splunk-connect
 ```
 
-##### Init/Sidecar container
+##### Init & Sidecar container
 
-This agent can also be used as an init or sidecar conatiner, which will connect to Hashi vault, retrieve secrets and creates file based secrets.  Agent will be 
-injected with a configmap which will give it instructions on - hashi vault connection details, what secrets to get from Hashi vault (path), type of file format and where to place them. The agent will closely emulate the functionality of hashi vault agent. The most common pattern is to use this agent as a init-container for an application, at startup this agent will grab secrets from vault and place them in a emptyDir (suggested: memory medium) which is mounted to both the containers. If the secrets needs to be updated when they chnage in thevault without restarting an application conatienr, then this agent can also be used a side car, which will keep the secrets in the emptyDir mount point upto date. However, its application responsibility to act when the secrets are changed in emptyDir mount point.
-
-
-![Alt text](Images/init-or-sidecar-container.png?raw=true "Init or side car container")
-
+This agent can also be used as an init or sidecar conatiner, similar to creating secrets in OpenShift/K8 platform, this agent needs two configMaps, however the second ConfigMap would be different. Based on the information provided through configMap's, agents connects to Hashi vault, retrieve secrets and creates file(s) based secrets in a shared volumes for application (main) container to consume.
 
 **Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk
 
@@ -166,7 +161,7 @@ volumes:
       medium: Memory
 ```
 
-Agent can provide scerets in various file formats such as
+Agent can provide scerets in various file formats such as -
 *  Json 
 *  Yaml
 *  Ini
@@ -206,7 +201,32 @@ FILE_SECRETS:
 
 ##### Jinja2 templating ConfigMap
 ```
-spring.datasource.url=jdbc:mysql://{{ mysql_host }}:3306/{{ mysql_db }}
-spring.datasource.username={{ mysql_user }}
-spring.datasource.password={{ mysql_password }}
+spring.datasource.url=jdbc:mysql://{{ values['mysql_host'] }}:3306/{{ values['mysql_db'] }}
+spring.datasource.username={{ values['mysql_user'] }}
+spring.datasource.password={{ values['mysql_password'] }}
 ```
+
+
+###### Init Container Mode
+To use this agent as an init container, we simply need to update application Deployment or DeploymentConfig YAML adding "secret-sync-agent" as an init container to application pod. 
+
+< Insert Diagram here> and point to an example
+
+
+
+###### SideCar Container Mode
+This is similar to an init container mode mentioned abve, but the container continues to run alongside the application container after startup, in what is known as a sidecar container pattern. It will continue to peridically read the secrets from hashi Vault and if they have been changed, it will update thh files it wrote with the new secret value. Application containers should be able to read the secrets from files on shared volume whilst runninng without restarting. Also, as both side car container and main (application) container start at the same time, secrets might not be available ffor main (application) container, so application should be able to handle this. 
+
+< Insert Diagram here> and point to an example
+
+
+In addition to aforementioned, application developes can also use both init or sidecar containers in the same Deployment or DeploymentConfig. 
+
+In this approach:
+*  An init container would start first retrieve the secrets from Hashi Vault and write the secret's contents to a shared volumeMount
+*  As soon as an init container exists with the return code 0 (graceful exit) 
+    *   Sidecar (secrets-sync-agent) container will start
+    *   Application (main) container will also start
+*  As soon as the main container starts, it can read secrets from the shared volumeMount written by an init container
+*  Any changes to secrets  in Vaultm will be refreshed by sidecar (secrets-sync-agent) container
+*  Application  can read the updated or refreshed secrets from the shared volumeMount whithout restrating 
