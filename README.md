@@ -130,7 +130,7 @@ This agent can also be used to create secrets in a different namespace as well, 
 **Recommeded to use a namespace scoped , unless for specific reasons or for automations
 
 
-![Alt text](images/create-secrets-in-same-namespace.jpg?raw=true "Create secret in a different namespace")
+![Alt text](images/create-secrets-in-different-namespace.jpg?raw=true "Create secret in a different namespace")
 
 
 ```yaml
