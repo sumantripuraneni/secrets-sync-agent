@@ -1,6 +1,8 @@
 # secrets-sync-agent
 
-The secrets-sync-agent can be used to create and update/refresh secrets in OpenShift Container Platform with Hashicorp vault secrets. This can also be used as an init or a sidecar container to provide secrets to an application container.
+The secrets-sync-agent can be used to 
+    * Create and update/refresh secrets in OpenShift/K8 platform with Hashicorp vault secrets
+    * As an init or a sidecar container to provide secrets to an application container
 
 
 ## Motivation 
