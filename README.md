@@ -1,6 +1,6 @@
 # secrets-sync-agent
 
-The secrets-sync-agent can be used to create and update/sync secrets in OpenShift Container Platform with Hashicorp vault secrets. This can also be used as an init or a sidecar container to provide secrets to an application container.
+The secrets-sync-agent can be used to create and update/refresh secrets in OpenShift Container Platform with Hashicorp vault secrets. This can also be used as an init or a sidecar container to provide secrets to an application container.
 
 
 ## Motivation 
@@ -17,13 +17,77 @@ There are usecases where we would need secrets from Hashi vault but those secret
      *   Based on architecture if the applictaions needs to be Hashi vault agnostic
         
 
+## What type of secrets this agent supports ?
+
+This agent can be used to<br>
+* Create secrets within a namespace as soon as namespace is created
+* Peridically update/sync namespace secrets from Hashi vault 
+
+For now, supported secret types are
+* ImagePullSecrets
+* TLS
+* Opaque
+* Opaque based on template (Jinja2)
+* Ssh-Auth
+
+
 ## How does it work?
 
-##### OpenShift secrets with in a Namespace
+For deploying the Secrets Sync Agent, as a pre requirement two configMaps are needed - which controls how it functions.
 
-This agent will perform the action of connecting to vault and retrieving secrets. We need to provide instructions on - 
-vault connection details, what secrets to get from Hashi vault, type of secret to create and name of the secret in OpenShift.
+*  The first configMap (secrets-config) contains details of vault instance and configuration used for kubeAuth
 
+    An example 
+
+    ```yaml
+    ---
+    kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: secrets-config
+    data:
+      vault_connection_info.yaml: |
+        ---
+        VAULT_ADDR: http://52.116.136.244:8200/
+        VAULT_LOGIN_ENDPOINT: v1/auth/kubernetes/login
+        VAULT_ROLE: suman-test
+    ```
+
+*  The second configMap (secrets-data) contains details of which secrets to retrieve from vault, name of the secret to create and type of secrets to create
+    An example
+
+    ```yaml
+    ---
+    kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: secrets-data
+    data:
+      vault_secrets_info.yaml: |
+        ---
+        KUBE_SECRETS:
+           - VAULT_SECRET_PATH: v1/secret/data/appsecrets
+             KUBERNETES_SECRET: demo-appsecrets
+             SECRET_TYPE: opaque
+
+           - VAULT_SECRET_PATH: v1/secret/data/appsecrets
+             KUBERNETES_SECRET: demo-appsecrets-template
+             SECRET_TYPE: opaque
+             TEMPLATE_AS_CONFIGMAP: template-testing
+
+           - VAULT_SECRET_PATH: v1/secret/data/nonprod-registry
+             KUBERNETES_SECRET: suman-test-template
+             SECRET_TYPE: dockercfg
+
+           - VAULT_SECRET_PATH: v1/secret/data/certs
+             KUBERNETES_SECRET: demo-appcerts
+             SECRET_TYPE: tls
+
+           - VAULT_SECRET_PATH: v1/secret/data/auth
+             KUBERNETES_SECRET: demo-ssh-auth
+             SECRET_TYPE: ssh-auth
+    ```    
+ 
 We can provide connection and secret retrieval information in multiple ways
 
 
@@ -44,64 +108,24 @@ The above mechanisms for providing configuration values can be used together in 
 Agent loads configuration in the following order, with later sources taking precedence over earlier ones
 * Default configuration (DEFAULT_CONNECTION_INFO_FILE and DEFAULT_SECRETS_RETRIEVAL_INFO_FILE)
 * User explictly provided configuration (VAULT_CONNECTION_INFO_CONFIG_FILE and VAULT_SECRETS_RETRIEVAL_INFO_CONFIG_FILE)
-* ConfigMap (VAULT_CONNECTION_INFO_CONFIGMAP_NAME and VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME)
+* ConfigMap (VAULT_CONNECTION_INFO_CONFIGMAP_NAME and VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME) 
 
 
-This agent can be used to<br>
-* Create secrets within a namespace as soon as namespace is created
-* Peridically update/sync namespace secrets from Hashi vault 
+##### OpenShift secrets with in a Namespace
 
-For now, supported secret types are
-* ImagePullSecrets
-* TLS
-* Opaque
-* Ssh-Auth
-* Opaque based on template (Jinja2)
+This agent can be used to create/refresh OpenShift/K8 platform secrets in the sanem namespace. Aformentioned two configMaps are to create/refresh secrets in a namespace where this agent is running.
+
+<<Insert image here>>>
 
 
 ![Alt text](Images/create-namespace-secrets.png?raw=true "Create secret in a namespace")
 
 
-Example Configurations: 
-
-###### Connection Details
-```yaml
----
-VAULT_ADDR: http://52.116.136.244:8200/
-VAULT_LOGIN_ENDPOINT: v1/auth/suman-hvault-01/login
-VAULT_ROLE: suman-test
-```
-
-###### Secret Retrieval Details 
-
-```yaml
----
-KUBE_SECRETS:
-   - VAULT_SECRET_PATH: v1/secret/data/appsecrets
-     KUBERNETES_SECRET: demo-appsecrets
-     SECRET_TYPE: opaque
-
-   - VAULT_SECRET_PATH: v1/secret/data/appsecrets
-     KUBERNETES_SECRET: demo-appsecrets-template
-     SECRET_TYPE: opaque
-     TEMPLATE_AS_CONFIGMAP: template-testing
-
-   - VAULT_SECRET_PATH: v1/secret/data/nonprod-registry
-     KUBERNETES_SECRET: suman-test-template
-     SECRET_TYPE: dockercfg
-
-   - VAULT_SECRET_PATH: v1/secret/data/certs
-     KUBERNETES_SECRET: demo-appcerts
-     SECRET_TYPE: tls
-
-   - VAULT_SECRET_PATH: v1/secret/data/auth
-     KUBERNETES_SECRET: demo-ssh-auth
-     SECRET_TYPE: ssh-auth
-```
 
 ##### OpenShift secrets with in a different Namespace
 
 This agent can also be used to create secrets in a different namespace as well, provided serviceaccount used with appropriate rbac policy.
+
 
 **Recommeded to use a namespace scoped , unless for specific reasons or for automations
 
