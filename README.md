@@ -117,10 +117,8 @@ Agent loads configuration in the following order, with later sources taking prec
 
 This agent can be used to create/refresh OpenShift/K8 platform secrets in the sanem namespace. Aformentioned two configMaps are to create/refresh secrets in a namespace where this agent is running.
 
-< Insert image here >
 
-
-![Alt text](Images/create-namespace-secrets.png?raw=true "Create secret in a namespace")
+![Alt text](images/create-secrets-in-same-namespace.jpg?raw=true "Create secret in same namespace")
 
 
 
@@ -132,7 +130,7 @@ This agent can also be used to create secrets in a different namespace as well, 
 **Recommeded to use a namespace scoped , unless for specific reasons or for automations
 
 
-![Alt text](Images/create-secrets-in-different-namespace.png?raw=true "Create secret in a different namespace ")
+![Alt text](images/create-secrets-in-same-namespace.jpg?raw=true "Create secret in a different namespace")
 
 
 ```yaml
@@ -154,7 +152,7 @@ KUBE_SECRETS:
 
 This agent can also be used as an init or sidecar container to provide secrets to an application container through shared volumeMount. Similar to creating secrets in OpenShift/K8 platform, this agent needs two configMaps, however the second ConfigMap would be different. Based on the information provided in configMap's, agents connects to Hashi vault, retrieve secrets and creates file(s) with secrets data in a shared volumeMount for application (main) container to consume.
 
-** Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk
+**Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk
 
 ```yaml
 volumes:
