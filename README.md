@@ -152,9 +152,9 @@ KUBE_SECRETS:
 
 #### Secrets in Application Pod 
 
-This agent can also be used as an init or sidecar conatiner, similar to creating secrets in OpenShift/K8 platform, this agent needs two configMaps, however the second ConfigMap would be different. Based on the information provided through configMap's, agents connects to Hashi vault, retrieve secrets and creates file(s) based secrets in a shared volumes for application (main) container to consume.
+This agent can also be used as an init or sidecar container to provide secrets to an application container through shared volumeMount. Similar to creating secrets in OpenShift/K8 platform, this agent needs two configMaps, however the second ConfigMap would be different. Based on the information provided in configMap's, agents connects to Hashi vault, retrieve secrets and creates file(s) with secrets data in a shared volumeMount for application (main) container to consume.
 
-**Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk
+** Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk
 
 ```yaml
 volumes:
@@ -171,41 +171,54 @@ Agent can provide scerets in various file formats such as -
 *  a single value to file based on selected key
 *  Jinja2 template
 
+An example configMap to retrieve secrets data
+
 ```yaml
----
-FILE_SECRETS:
-   -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
-       TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.ini
-       FILE_FORMAT: ini
-       INI_SECTION_NAME: app-secrets
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: secrets-data
+  vault_secrets_info.yaml: |
+    ---
+    FILE_SECRETS:
+       -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
+           TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.ini
+           FILE_FORMAT: ini
+           INI_SECTION_NAME: app-secrets
 
-   -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
-       TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.json
-       FILE_FORMAT: json
+       -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
+           TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.json
+           FILE_FORMAT: json
 
-   -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
-       TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.yml
-       FILE_FORMAT: yaml
+       -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
+           TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.yml
+           FILE_FORMAT: yaml
 
-   -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
-       TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.env
-       FILE_FORMAT: env
+       -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
+           TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.env
+           FILE_FORMAT: env
 
-   -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
-       TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.txt
-       FILE_FORMAT: key
-       KEY: key1
+       -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
+           TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.txt
+           FILE_FORMAT: key
+           KEY: key1
 
-   -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
-       TO_FILE_NAME: /root/suman/working/test_dir/properties.ini
-       TEMPLATE_AS_CONFIGMAP: template-testing
+       -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
+           TO_FILE_NAME: /root/suman/working/test_dir/properties.ini
+           TEMPLATE_AS_CONFIGMAP: properties-template
 ```
 
 ##### Jinja2 templating ConfigMap
-```
-spring.datasource.url=jdbc:mysql://{{ values['mysql_host'] }}:3306/{{ values['mysql_db'] }}
-spring.datasource.username={{ values['mysql_user'] }}
-spring.datasource.password={{ values['mysql_password'] }}
+```yaml
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: properties-testing
+data:
+  template-testing-cm.config: |
+    spring.datasource.url=jdbc:mysql://{{ values['mysql_host'] }}:3306/{{ values['mysql_db'] }}
+    spring.datasource.username={{ values['mysql_user'] }}
+    spring.datasource.password={{ values['mysql_password'] }}
 ```
 
 
