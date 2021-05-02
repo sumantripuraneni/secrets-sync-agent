@@ -214,12 +214,14 @@ To use this agent as an init container, we simply need to update application Dep
 
 < Insert Diagram here> and point to an example
 
+![Alt text](images/init-container.jpg "Init container")
 
 
 ###### SideCar Container Mode
 This is similar to an init container mode mentioned abve, but the container continues to run alongside the application container after startup, in what is known as a sidecar container pattern. It will continue to peridically read the secrets from hashi Vault and if they have been changed, it will update thh files it wrote with the new secret value. Application containers should be able to read the secrets from files on shared volume whilst runninng without restarting. Also, as both side car container and main (application) container start at the same time, secrets might not be available ffor main (application) container, so application should be able to handle this. 
 
-< Insert Diagram here> and point to an example
+![Alt text](images/side-car-container.jpg "Side car container")
+
 
 
 In addition to aforementioned, application developes can also use both init or sidecar containers in the same Deployment or DeploymentConfig. 
