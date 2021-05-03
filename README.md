@@ -176,6 +176,7 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: secrets-data
+data:
   vault_secrets_info.yaml: |
     ---
     FILE_SECRETS:
