@@ -663,8 +663,8 @@ def writeToFile(secretData, configData, namespace, tempFile=None):
 
             fileType = configData.get("FILE_FORMAT")
 
-            if "key" in configData.keys() and fileType == "key":
-                key = configData["key"]
+            if "KEY" in configData.keys() and fileType == "key":
+                key = configData["KEY"]
 
         elif (
             "FILE_FORMAT" not in configData.keys()
