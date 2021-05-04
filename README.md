@@ -42,7 +42,7 @@ For now, supported secret types are <br>
 
 ### How does it work?
 
-For deploying the Secrets Sync Agent, as a pre requirement two configMaps are needed - which controls how it functions.
+For deploying the Secrets Sync Agent to create secrets in OpenShift/k8 Platform, as a pre-requirement two configMaps are needed - which controls how it functions.
 
 *  The first configMap contains connection details of vault instance and configuration used for kubeAuth
 
@@ -60,6 +60,7 @@ For deploying the Secrets Sync Agent, as a pre requirement two configMaps are ne
         VAULT_ADDR: http://52.116.136.244:8200/
         VAULT_LOGIN_ENDPOINT: v1/auth/kubernetes/login
         VAULT_ROLE: suman-test
+        #VAULT_NAMESPACE: projects   For enterprise Hashi vault 
     ```
 
 *  The second configMap contains details of which secrets to retrieve from vault, name of the secret to create and type of secrets to create<br>
@@ -98,7 +99,8 @@ For deploying the Secrets Sync Agent, as a pre requirement two configMaps are ne
              SECRET_TYPE: ssh-auth
     ```    
  
-<br><br>**We can provide connection and secret retrieval information in multiple ways
+<br><br>
+**We can provide aforementione connection and secret retrieval configMaps information in multiple ways
 
 
 | Name              | Default Value | Description |
@@ -135,7 +137,7 @@ This agent can be used to create/refresh(periodically) OpenShift/K8 platform sec
 This agent can also be used to create secrets in a different namespace as well, provided serviceaccount used with appropriate rbac policy.
 
 
-**Recommeded to use a namespace scoped , unless for specific reasons or for automations
+**Recommeded to use a namespace scoped, unless for specific reasons or for automations
 
 
 ![Alt text](images/create-secrets-in-different-namespace.jpg?raw=true "Create secret in a different namespace")
@@ -165,7 +167,7 @@ data:
 
 ## Secrets in Application Pod 
 
-This agent can also be used as an init or sidecar container to provide secrets to an application container through shared volumeMount. Similar to creating secrets in OpenShift/K8 platform, this agent needs two configMaps, however the second ConfigMap would be different. Based on the information provided in configMap's, agents connects to Hashi vault, retrieve secrets and creates file(s) with secrets data in a shared volumeMount for application (main) container to consume.
+In addition to creating secrets at a platform level, this agent can also be used as an init or sidecar container to provide secrets to an application container through shared volumeMount. Similar to creating secrets in OpenShift/K8 platform, this agent needs two configMaps, however the second ConfigMap would be different. Based on the information provided in configMap's, agents connects to Hashi vault, retrieve secrets and creates file(s) with secrets data in a shared volumeMount for application (main) container to consume.
 
 **Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk
 
@@ -176,7 +178,7 @@ volumes:
       medium: Memory
 ```
 
-Agent can provide scerets in various file formats such as -
+Agent can write scerets in various file formats such as - <br>
 *  Json 
 *  Yaml
 *  Ini
@@ -184,7 +186,9 @@ Agent can provide scerets in various file formats such as -
 *  a single value to file based on selected key
 *  Jinja2 template
 
-An example configMap to retrieve secrets data
+As mentioned in platform secrest section, this agents needs to two configMaps, connection configMap doesn't change, however the second ConfigMap would to retrieve secrets data, <br>
+
+An example
 
 ```yaml
 kind: ConfigMap
