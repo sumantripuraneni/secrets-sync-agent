@@ -97,6 +97,8 @@ For deploying the Secrets Sync Agent to create secrets in OpenShift/k8 Platform,
            - VAULT_SECRET_PATH: v1/secret/data/auth
              KUBERNETES_SECRET: demo-ssh-auth
              SECRET_TYPE: ssh-auth
+
+        #VAULT_SECRETS_REFRESH_SECONDS: 300  If not mentioned, defaults to 3600 seconds
     ```    
  
 <br><br>
@@ -163,6 +165,7 @@ data:
         KUBERNETES_SECRET: splunk-hec-token
         SECRET_TYPE: opaque
         NAMESPACE: splunk-connect
+             
 ```
 
 ## Secrets in Application Pod 
@@ -198,6 +201,7 @@ metadata:
 data:
   vault_secrets_info.yaml: |
     ---
+
     FILE_SECRETS:
        -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
            TO_FILE_NAME: /root/suman/working/test_dir/appsecrets.ini
@@ -224,6 +228,8 @@ data:
        -   VAULT_SECRET_PATH: v1/secret/data/appsecrets
            TO_FILE_NAME: /root/suman/working/test_dir/properties.ini
            TEMPLATE_AS_CONFIGMAP: properties-template
+
+    #VAULT_SECRETS_REFRESH_SECONDS: 300  If not mentioned, defaults to 3600 seconds   
 ```
 
 ##### Jinja2 templating ConfigMap
