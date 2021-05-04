@@ -102,7 +102,7 @@ For deploying the Secrets Sync Agent to create secrets in OpenShift/k8 Platform,
     ```    
  
 <br><br>
-**We can provide aforementione connection and secret retrieval configMaps information in multiple ways
+**We can provide aforementioned connection and secret retrieval configMaps information in multiple ways**
 
 
 | Name              | Default Value | Description |
@@ -139,7 +139,7 @@ This agent can be used to create/refresh(periodically) OpenShift/K8 platform sec
 This agent can also be used to create secrets in a different namespace as well, provided serviceaccount used with appropriate rbac policy.
 
 
-**Recommeded to use a namespace scoped, unless for specific reasons or for automations
+**Recommeded to use a namespace scoped, unless for specific reasons or for automations**
 
 
 ![Alt text](images/create-secrets-in-different-namespace.jpg?raw=true "Create secret in a different namespace")
@@ -172,7 +172,7 @@ data:
 
 In addition to creating secrets at a platform level, this agent can also be used as an init or sidecar container to provide secrets to an application container through shared volumeMount. Similar to creating secrets in OpenShift/K8 platform, this agent needs two configMaps, however the second ConfigMap would be different. Based on the information provided in configMap's, agents connects to Hashi vault, retrieve secrets and creates file(s) with secrets data in a shared volumeMount for application (main) container to consume.
 
-**Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk
+**Recommneded to used emptyDir with medium memory to avoid writing secrets to host disk**
 
 ```yaml
 volumes:
