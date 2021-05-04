@@ -1,0 +1,13 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: connection-info
+data:
+  vault_connection_info.yaml: |
+    ---
+
+    VAULT_ADDR: http://10.240.0.4:8200/
+    #VAULT_ADDR: http://52.116.136.244:8200/
+    VAULT_LOGIN_ENDPOINT: v1/auth/kubernetes/login
+    VAULT_ROLE: suman-test
+
