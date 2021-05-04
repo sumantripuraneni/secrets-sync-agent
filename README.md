@@ -260,7 +260,7 @@ This is similar to an init container mode mentioned abve, but the container cont
 
 
 
-In addition to aforementioned, application developes can also use both init or sidecar containers in the same Deployment or DeploymentConfig. 
+In addition to aforementioned init or side car container approach, application developers can also use both init or sidecar containers in the same Deployment or DeploymentConfig. 
 
 In this approach:
 *  An init container would start first retrieve the secrets from Hashi Vault and write the secret's contents to a shared volumeMount
