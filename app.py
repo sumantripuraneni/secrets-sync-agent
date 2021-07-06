@@ -15,9 +15,6 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from kubernetes import config, client
 from openshift.dynamic import DynamicClient
 
-# Disable InsecureRequestWarning warnings while connecting to OpenShift API
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
 
 # Global Log settings
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -36,7 +33,10 @@ else:
     config.load_kube_config()
 
 # Create a client config
+# Enable TLS communication, use SA CA certificate
 k8s_config = client.Configuration()
+k8s_config.verify_ssl = True
+k8s_config.ssl_ca_cert = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"   
 
 # Create K8 and dynamic client instances
 try:
@@ -45,6 +45,10 @@ try:
 except Exception as error:
     print("An exception occurred: {}".format(error))
     sys.exit(1)
+
+
+# TLS cert for secure communication with vault
+
 
 
 # Function to read the environment parameters and create config dict
@@ -70,6 +74,23 @@ def getFromEnv():
     config["DEFAULT_SECRETS_RETRIEVAL_INFO_FILE"] = os.environ.get(
         "DEFAULT_SECRETS_RETRIEVAL_INFO_FILE", "/etc/secrets_sync_agent/secrets_info/vault_secrets_info.yaml"
     )
+
+    if os.environ.get("SECRETS_RETRIEVAL_INFO_FROM_ENV"):
+        config["SECRETS_RETRIEVAL_INFO_FROM_ENV"] = yaml.safe_load(os.environ.get(
+            "SECRETS_RETRIEVAL_INFO_FROM_ENV"
+        ))
+    else:
+        config["SECRETS_RETRIEVAL_INFO_FROM_ENV"] = None
+    
+    if os.environ.get("CONNECTION_INFO_FROM_ENV"):
+        config["CONNECTION_INFO_FROM_ENV"] = yaml.safe_load(os.environ.get(
+            "CONNECTION_INFO_FROM_ENV"
+        ))
+    else:
+        config["CONNECTION_INFO_FROM_ENV"] = None
+
+    config["VAULT_SECRETS_REFRESH_SECONDS"] = os.environ.get("VAULT_SECRETS_REFRESH_SECONDS", "0")
+
     config["RUN_ONCE"] = os.environ.get("RUN_ONCE", "False").lower()
 
     log.debug("Environment variables dictionary:")
@@ -123,6 +144,7 @@ def getKubeHvaultAuthToken(
         sys.exit(1)
 
     return resp.json().get("auth").get("client_token")
+
 
 
 # Function to read the secrets from HashiVault path
@@ -253,22 +275,24 @@ def validateConfig(configuration_dict):
                     log.info("Got an empty configuration, waiting for user to complete configuration")
                     sys.exit(0)
           
-                for index, dct in enumerate(value):
-                    key = [key for key, value in dct.items() if value is None]
-                    if len(key):
-                        missing_values_dict = {"keys-position-in-configuration": index, "missing-value-for-key": key}
-                        missing_values_list.append(missing_values_dict)
+                if key == "KUBE_SECRETS":
 
-                if len(missing_values_list):
-                    log.error("Keys are missing values in configuration")
-                    log.debug("List of missing values for keys:{}".format(missing_values_list))
+                    for index, dct in enumerate(value):
+                        key = [key for key, value in dct.items() if value is None]
+                        if len(key):
+                            missing_values_dict = {"keys-position-in-configuration": index, "missing-value-for-key": key}
+                            missing_values_list.append(missing_values_dict)
 
-                    for index, elem in enumerate(missing_values_list):
-                        log.error("Missing key(s) position in configuration array: {}".format(missing_values_list[index]["keys-position-in-configuration"]))
-                        log.error("Key(s) with missing values: {}".format(missing_values_list[index]["missing-value-for-key"]))
+                    if len(missing_values_list):
+                        log.error("Keys are missing values in configuration")
+                        log.debug("List of missing values for keys:{}".format(missing_values_list))
 
-                    log.error("Please provide appropriate value for key(s) with missing value(s)")
-                    sys.exit(1)
+                        for index, elem in enumerate(missing_values_list):
+                            log.error("Missing key(s) position in configuration array: {}".format(missing_values_list[index]["keys-position-in-configuration"]))
+                            log.error("Key(s) with missing values: {}".format(missing_values_list[index]["missing-value-for-key"]))
+
+                            log.error("Please provide appropriate value for key(s) with missing value(s)")
+                            sys.exit(1)
 
 
 # Function to read the configuration values from OpenShift ConfigMap
@@ -377,7 +401,6 @@ def createImagePullSecretBody(data, secretName):
 
 # Function to render Jinja2 template
 def renderJinja2Template(secretData, namespace, configMapName=None, templateFile=None):
-
 
     if configMapName:
         templateData = readDataFromConfigMap(configMapName, namespace=namespace)
@@ -744,14 +767,27 @@ def writeToFile(secretData, configData, namespace, tempFile=None):
 # Function to get the Hashi vault connection and secret retrieval details
 def processInput(userEnvConfig, namespace):
 
-    default_connection_file = userEnvConfig.get("DEFAULT_CONNECTION_INFO_FILE")
-    default_secrets_file    = userEnvConfig.get("DEFAULT_SECRETS_RETRIEVAL_INFO_FILE")
-    user_connection_file    = userEnvConfig.get("VAULT_CONNECTION_INFO_CONFIG_FILE")
-    user_connection_cm      = userEnvConfig.get("VAULT_CONNECTION_INFO_CONFIGMAP_NAME")
-    user_secrets_file       = userEnvConfig.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIG_FILE")
-    user_secrets_cm         = userEnvConfig.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME")
+    default_connection_file   = userEnvConfig.get("DEFAULT_CONNECTION_INFO_FILE")
+    default_secrets_file      = userEnvConfig.get("DEFAULT_SECRETS_RETRIEVAL_INFO_FILE")
+    user_connection_file      = userEnvConfig.get("VAULT_CONNECTION_INFO_CONFIG_FILE")
+    user_connection_cm        = userEnvConfig.get("VAULT_CONNECTION_INFO_CONFIGMAP_NAME")
+    user_secrets_file         = userEnvConfig.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIG_FILE")
+    user_secrets_cm           = userEnvConfig.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME")
+    user_connection_from_env  = userEnvConfig.get("CONNECTION_INFO_FROM_ENV")
+    user_secrets_from_env     = userEnvConfig.get("SECRETS_RETRIEVAL_INFO_FROM_ENV")
 
     log.debug("Program will use below to get the details in following precedence")
+
+    log.debug(
+        "User provided vault connection details from environment: {}".format(
+            user_connection_from_env
+        )
+    )
+    log.debug(
+        "User provided vault secrets retrieval from environment: {}".format(
+            user_secrets_from_env
+        )
+    )
     log.debug(
         "Default vault connection details file: {}".format(
             default_connection_file
@@ -783,6 +819,7 @@ def processInput(userEnvConfig, namespace):
         )
     )
 
+
     for type in ["connection", "secrets"]:
 
         eval_default_file = eval("default_" + type + "_file")
@@ -792,7 +829,33 @@ def processInput(userEnvConfig, namespace):
         log.info("Trying to get vault {} details".format(type))
 
         try:
-            if (
+
+            if user_connection_from_env and user_secrets_from_env:
+
+                log.debug(
+                    "Based on precedence reading {} details from user provided values from custom resource".format(
+                        type
+                    )
+                )
+                log.info(
+                    "Reading details from environment to get details from user provided values from custom resource"
+                )
+
+                temp_dict = eval("user_" + type + "_from_env")
+
+                if type == 'connection':
+                    globals()[type + "_details"] = { k.upper()[1:]:v for k,v in temp_dict.items()}
+
+                elif type == 'secrets':
+                    for list_of_dicts in temp_dict.values():
+                          globals()[type + "_details"] = {
+                            "KUBE_SECRETS": [ 
+                                { k.upper()[1:]: v  for k,v in dt.items() } 
+                                for dt in list_of_dicts 
+                                ] 
+                            }
+
+            elif (
                 os.path.isfile(eval_default_file)
                 and eval_user_file
                 and eval_user_cm
@@ -883,6 +946,9 @@ def processInput(userEnvConfig, namespace):
             sys.exit(1)
 
         log.info("Got vault {} details".format(type))
+
+    connection_details = globals()["connection_details"]
+    secrets_details = globals()["secrets_details"]
 
     log.debug("Vault connection details:")
     log.debug(json.dumps(connection_details, indent=4))
@@ -1200,7 +1266,11 @@ def main():
             sys.exit(0)
 
         # Refresh Kubernetes secrets 
-        refresh_time = vault_configmap_contents.get("VAULT_SECRETS_REFRESH_SECONDS", 3600)
+        # See if its provided in environment or in configmaps 
+        if int(userEnvConfig.get("VAULT_SECRETS_REFRESH_SECONDS")) != 3600 and int(userEnvConfig.get("VAULT_SECRETS_REFRESH_SECONDS")):
+            refresh_time = userEnvConfig.get("VAULT_SECRETS_REFRESH_SECONDS")
+        else:
+            refresh_time = vault_configmap_contents.get("VAULT_SECRETS_REFRESH_SECONDS", 3600)
         log.info(
             "Waiting for {} seconds before connecting to vault".format(
                 refresh_time
