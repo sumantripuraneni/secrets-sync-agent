@@ -14,9 +14,9 @@ log = logging.getLogger("agent")
 
 # Function to create opaque secret definition based on temmplate
 def create_opaque_secret_body_from_template(
-    secret_data, secret_name, secret_file_name, namespace,
-    config_map=None, template_file=None
-):
+    secret_data: dict, secret_name: str, secret_file_name: str, namespace: str,
+    config_map: str = None, template_file: str = None
+) -> dict:
 
     '''Function to create opaque secret definition based on temmplate '''
 

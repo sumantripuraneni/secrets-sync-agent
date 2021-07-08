@@ -3,7 +3,7 @@ from openshift.dynamic import DynamicClient
 import sys
 import os
 
-def get_client():
+def get_client(token: str = None):
 
     # Check if code is running in OpenShift
     if "KUBERNETES_SERVICE_HOST" in os.environ and "KUBERNETES_SERVICE_PORT" in os.environ:
@@ -18,6 +18,9 @@ def get_client():
     k8s_config.verify_ssl = True
     k8s_config.ssl_ca_cert = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"   
 
+    if token:
+        k8s_config.api_key = {"authorization": "Bearer " + token}
+
     # Create K8 and dynamic client instances
     try:
         k8s_client = client.api_client.ApiClient(configuration=k8s_config)
@@ -25,5 +28,5 @@ def get_client():
     except Exception as error:
         print("An exception occurred: {}".format(error))
         sys.exit(1)
-    
+  
     return dyn_client

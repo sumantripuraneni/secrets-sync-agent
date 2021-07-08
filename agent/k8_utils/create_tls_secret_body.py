@@ -10,7 +10,7 @@ log = logging.getLogger("agent")
 
 
 # Function to create TLS secret definition
-def create_tls_secret_body(secret_data, secret_name):
+def create_tls_secret_body(secret_data: dict, secret_name: str) -> dict:
 
     '''Function to create TLS secret definition'''
 
@@ -18,7 +18,9 @@ def create_tls_secret_body(secret_data, secret_name):
     log.info(
         "Validating if all necessary fields to create TLS secrets are received from vault"
     )
+
     try:
+
         if "tls.crt" in secret_data["data"] and "tls.key" in secret_data["data"]:
             log.info(
                 "All necessary fields to create TLS secrets are received from vault"
@@ -31,7 +33,9 @@ def create_tls_secret_body(secret_data, secret_name):
             log.error("Data received from vault: {}".format(secret_data["data"]))
             log.error("Please check secret definition in vault")
             sys.exit(1)
+
     except Exception as error:
+
         log.error(
             "Error while validating for all necessary fields to create TLS secrets"
         )

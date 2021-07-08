@@ -11,7 +11,7 @@ log = logging.getLogger("agent")
 
 
 # Function to create secret in ocp
-def create_secret(secret_body, secret_name, secret_type, namespace):
+def create_secret(secret_body: dict, secret_name: str, secret_type: str, namespace: str):
 
     '''Function to create secret in ocp'''
 

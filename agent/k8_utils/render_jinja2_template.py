@@ -8,8 +8,12 @@ from agent.k8_utils.read_from_configmap import read_data_from_configmap
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 log = logging.getLogger("agent")
 
+
 # Function to render Jinja2 template
-def render_jinja2_template(secret_data, namespace, config_map=None, template_file=None):
+def render_jinja2_template(secret_data: dict, namespace: str,
+    config_map: str = None, template_file: str = None) -> str:
+
+    '''Function to render provided Jinja2 template'''
 
     if config_map:
         templateData = read_data_from_configmap(config_map, namespace=namespace)

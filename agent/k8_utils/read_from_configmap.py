@@ -9,7 +9,7 @@ log = logging.getLogger("agent")
 
 
 # Function to read data from from OpenShift ConfigMap
-def read_data_from_configmap(configmap, namespace):
+def read_data_from_configmap(configmap: str, namespace: str) -> dict:
 
     """Function to read data from from OpenShift ConfigMap"""
 

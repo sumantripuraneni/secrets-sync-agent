@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import sys
-import requests
 import json
 from agent.utils.base64_conversions import toBase64
 
@@ -10,7 +9,7 @@ log = logging.getLogger("agent")
 
 
 # Function to create image pull secret definition
-def create_image_pull_secret_body(data, secret_name):
+def create_image_pull_secret_body(data: dict, secret_name: str) -> dict:
 
     # Block to validate if all necessary fields to create image pull secrets are received from vault
     log.info(

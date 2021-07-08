@@ -11,7 +11,7 @@ logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 log = logging.getLogger("agent")
 
 # Function to create SSH Auth Secret Definition
-def create_ssh_auth_secret_body(secret_data, secret_name):
+def create_ssh_auth_secret_body(secret_data: dict, secret_name: str) -> dict:
 
     '''Function to create SSH Auth Secret Definition'''
 

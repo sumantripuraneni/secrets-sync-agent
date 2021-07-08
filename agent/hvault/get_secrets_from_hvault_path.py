@@ -7,8 +7,9 @@ import json
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 log = logging.getLogger("agent")
 
+
 # Function to read the secrets from HashiVault path
-def get_secret(vault_url, secret_path, k8_hvault_token):
+def get_secret(vault_url: str, secret_path: str, k8_hvault_token: str) -> dict:
 
     '''Function to read the secrets from HashiVault path'''
 

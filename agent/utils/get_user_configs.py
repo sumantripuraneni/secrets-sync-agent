@@ -53,7 +53,7 @@ class GetUserConfigs:
                 sys.exit(1)
 
 
-    def process_input(self):
+    def process_input(self) -> dict:
 
         default_connection_file   = self.user_env_config.get("DEFAULT_CONNECTION_INFO_FILE")
         default_secrets_file      = self.user_env_config.get("DEFAULT_SECRETS_RETRIEVAL_INFO_FILE")

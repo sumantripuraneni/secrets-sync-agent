@@ -5,7 +5,7 @@ import sys
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 log = logging.getLogger("agent")
 
-def get_sa_token():
+def get_sa_token() -> str:
     '''Function to get mounted Service Account token'''
 
     k8_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
@@ -18,3 +18,4 @@ def get_sa_token():
         log.error("Error reading from file: {}".format(e))
         sys.exit(1)
         print("Error")
+

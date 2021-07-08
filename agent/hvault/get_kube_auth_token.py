@@ -3,15 +3,17 @@ import logging
 import logging.config
 import sys
 import requests
-import json 
+import json
 
 
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 log = logging.getLogger("agent")
 
+
 def get_vault_kube_auth_token(
-    vault_url, login_ep, role_name, k8_token, vault_login_namespace=None
-):
+    vault_url: str, login_ep: str, role_name: str, 
+    k8_token: str, vault_login_namespace: str = None
+) -> str:
 
     '''Function to get the KubeAuth token from Hashi Vault'''
 

@@ -7,7 +7,8 @@ log = logging.getLogger("agent")
 
 
 # Function to get namespace name with in the pod
-def get_namespace_name():
+def get_namespace_name() -> str:
+    
     '''Function to get namespace name with in the pod'''
 
     ns_file = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"

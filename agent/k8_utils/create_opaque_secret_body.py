@@ -10,7 +10,7 @@ log = logging.getLogger("agent")
 
 
 # Function to create opaque secret definition
-def create_opaque_secret_body(secret_data, secret_name):
+def create_opaque_secret_body(secret_data: dict, secret_name: str) -> dict:
 
     log.info("Creating definition for opaque secret: {}".format(secret_name))
 
