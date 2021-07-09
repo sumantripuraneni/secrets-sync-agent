@@ -11,7 +11,7 @@ log = logging.getLogger("agent")
 # Class definition to validate vault connection configuration
 class VaultConnectionModel(BaseModel):
 
-    '''A class to parse and validate vault connection information'''
+    """A class to parse and validate vault connection information"""
 
     VAULT_ADDR: HttpUrl
     VAULT_LOGIN_ENDPOINT: str
@@ -21,7 +21,7 @@ class VaultConnectionModel(BaseModel):
 # Class definition to validate list of KUBE_SECRETS
 class KubeSecretsBase(BaseModel):
 
-    '''A class to parse and validate list of KUBE_SECRETS'''
+    """A class to parse and validate list of KUBE_SECRETS"""
 
     VAULT_SECRET_PATH: str
     KUBERNETES_SECRET: str
@@ -33,7 +33,7 @@ class KubeSecretsBase(BaseModel):
 # Class definition to validate KUBE_SECRETS
 class KubeSecrets(BaseModel):
 
-    '''A class to parse and validate KUBE_SECRETS'''    
+    """A class to parse and validate KUBE_SECRETS"""
 
     KUBE_SECRETS: List[KubeSecretsBase]
 
@@ -41,7 +41,7 @@ class KubeSecrets(BaseModel):
 # Class definition to validate list of FILE_SECRETS
 class FileSecretsBase(BaseModel):
 
-    '''A class to parse and validate list of FILE_SECRETS:'''
+    """A class to parse and validate list of FILE_SECRETS:"""
 
     VAULT_SECRET_PATH: str
     FILE_FORMAT: str
@@ -49,18 +49,22 @@ class FileSecretsBase(BaseModel):
     TEMPLATE_AS_CONFIGMAP: Optional[str]
     TEMPLATE_AS_FILE: Optional[str]
 
-    @validator('FILE_FORMAT')
+    @validator("FILE_FORMAT")
     def supported_file_formats(cls, FILE_FORMAT):
-        file_formats = ['json', 'yaml', 'ini', 'txt']
-        if FILE_FORMAT not in file_formats:
-            raise ValueError("FILE_FORMAT must in {}".format(file_formats))
+        file_formats = ["json", "yaml", "ini", "txt"]
+        if FILE_FORMAT.lower() not in file_formats:
+            raise ValueError(
+                "Unsupported FILE_FORMAT requested. Supported formats - {}".format(
+                    file_formats
+                )
+            )
         return FILE_FORMAT
 
 
 # Class definition to validate FILE_SECRETS
 class FileSecrets(BaseModel):
 
-    '''A class to parse and validate FILE_SECRETS:'''
+    """A class to parse and validate FILE_SECRETS:"""
 
     FILE_SECRETS: List[FileSecretsBase]
 
@@ -68,20 +72,19 @@ class FileSecrets(BaseModel):
 # Class definition to validate configuration
 class ValidateConfig:
 
-    '''Class to validate input configurations'''
+    """Class to validate input configurations"""
 
     def __init__(self, data):
         self.data = data
 
-
     def validate_vault_connection_config(self) -> bool:
 
-        '''Function to validate vault connection configuration'''
+        """Function to validate vault connection configuration"""
 
-        try:  
+        try:
 
             res = VaultConnectionModel(**self.data)
-    
+
             log.info("Vault connection configuration validations passed")
             log.debug("Vault connection Configuration: {}".format(res))
 
@@ -96,7 +99,7 @@ class ValidateConfig:
 
     def validate_kube_secrets_config(self) -> bool:
 
-        '''Function to validate kube secrets configuration'''
+        """Function to validate kube secrets configuration"""
 
         try:
 
@@ -114,10 +117,9 @@ class ValidateConfig:
 
             return False
 
-
     def validate_file_secrets_config(self) -> bool:
 
-        '''Function to validate file secrets configuration'''
+        """Function to validate file secrets configuration"""
 
         try:
 
@@ -136,34 +138,31 @@ class ValidateConfig:
             return False
 
 
-
 # Class definition to validate user configuration
 class ValidateUserConfig:
-
-
     def __init__(self, connection_config, secrets_config):
         self.connection_config = connection_config
-        self.secrets_config    = secrets_config
-
+        self.secrets_config = secrets_config
 
     def validate_user_config(self):
 
-        '''Function to validate user configurations'''
+        """Function to validate user configurations"""
 
-        if "KUBE_SECRETS" in self.secrets_config.keys() and "FILE_SECRETS" in self.secrets_config.keys():
+        if (
+            "KUBE_SECRETS" in self.secrets_config.keys()
+            and "FILE_SECRETS" in self.secrets_config.keys()
+        ):
 
             log.error(
-                        "Both KUBE_SECRETS and FILE_SECRETS cannot be used!!. Please check configuration."
-                    )
+                "Both KUBE_SECRETS and FILE_SECRETS cannot be used!!. Please check configuration."
+            )
             sys.exit(1)
-
 
         # Validate vault connection configuration
         conn = ValidateConfig(self.connection_config)
 
         if not conn.validate_vault_connection_config():
             sys.exit(1)
-
 
         # Validate KUBE_SECRETS configuration
         if "KUBE_SECRETS" in self.secrets_config.keys():
@@ -173,7 +172,6 @@ class ValidateUserConfig:
 
             if not ksec.validate_kube_secrets_config():
                 sys.exit(1)
-
 
         # Validate FILE_SECRETS configuration
         if "FILE_SECRETS" in self.secrets_config.keys():

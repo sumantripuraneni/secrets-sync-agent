@@ -18,7 +18,7 @@ class GetUserConfigs:
         self.namespace       = namespace
 
     @staticmethod
-    def readDataFromFile(fileName):
+    def read_data_from_file(fileName):
 
         '''Function to read from mounted config files '''
 
@@ -34,36 +34,73 @@ class GetUserConfigs:
             log.error("Error while loading yaml file: {}".format(e))
             sys.exit(1)
 
-        # Function to read the configuration values from OpenShift ConfigMap
-        @staticmethod
-        def getAdminConfig(configMapName, namespace):
+    # Function to read the configuration values from OpenShift ConfigMap
+    @staticmethod
+    def get_configmap_contents(configMapName, namespace):
 
-            '''Function to read the configuration values from OpenShift ConfigMap'''
+        '''Function to read the configuration values from OpenShift ConfigMap'''
 
-            try:
-                configMapData = read_data_from_configmap(configMapName, namespace)
-                controllerConfig = yaml.full_load(configMapData)
+        try:
+            configMapData = read_data_from_configmap(configMapName, namespace)
+            controllerConfig = yaml.full_load(configMapData)
 
-                #validateConfig(controllerConfig)
+            #validateConfig(controllerConfig)
 
-                return controllerConfig
+            return controllerConfig
 
-            except Exception as e:
-                log.error("Error while reading configmap: {}".format(e))
-                sys.exit(1)
+        except Exception as e:
+            log.error("Error while reading configmap: {}".format(e))
+            sys.exit(1)
 
 
     def process_input(self) -> dict:
 
-        default_connection_file   = self.user_env_config.get("DEFAULT_CONNECTION_INFO_FILE")
-        default_secrets_file      = self.user_env_config.get("DEFAULT_SECRETS_RETRIEVAL_INFO_FILE")
-        user_connection_file      = self.user_env_config.get("VAULT_CONNECTION_INFO_CONFIG_FILE")
-        user_connection_cm        = self.user_env_config.get("VAULT_CONNECTION_INFO_CONFIGMAP_NAME")
-        user_secrets_file         = self.user_env_config.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIG_FILE")
-        user_secrets_cm           = self.user_env_config.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME")
-        user_connection_from_env  = self.user_env_config.get("CONNECTION_INFO_FROM_ENV")
-        user_secrets_from_env     = self.user_env_config.get("SECRETS_RETRIEVAL_INFO_FROM_ENV")
-        namespace                 = self.namespace
+        '''Function to determine and process user inputs'''
+
+        default_connection_file             = self.user_env_config.get("DEFAULT_CONNECTION_INFO_FILE")
+        default_secrets_file                = self.user_env_config.get("DEFAULT_SECRETS_RETRIEVAL_INFO_FILE")
+        user_connection_file                = self.user_env_config.get("VAULT_CONNECTION_INFO_CONFIG_FILE")
+        user_connection_cm                  = self.user_env_config.get("VAULT_CONNECTION_INFO_CONFIGMAP_NAME")
+        user_secrets_file                   = self.user_env_config.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIG_FILE")
+        user_secrets_cm                     = self.user_env_config.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME")
+        user_connection_from_env            = self.user_env_config.get("CONNECTION_INFO_FROM_ENV")
+        user_secrets_from_env               = self.user_env_config.get("SECRETS_RETRIEVAL_INFO_FROM_ENV")
+        vault_addr_from_env                 = self.user_env_config.get("VAULT_ADDR")
+        vault_role_from_env                 = self.user_env_config.get("VAULT_ROLE")
+        vault_namespace_from_env            = self.user_env_config.get("VAULT_NAMESPACE")
+        vault_login_endpoint_from_env       = self.user_env_config.get("VAULT_LOGIN_ENDPOINT")
+        namespace                           = self.namespace
+
+
+        if vault_addr_from_env is not None and vault_role_from_env is not None:
+            connection_dict = {
+                "VAULT_ADDR": vault_addr_from_env,
+                "VAULT_ROLE": vault_role_from_env,
+                "VAULT_LOGIN_ENDPOINT": vault_login_endpoint_from_env
+            }
+
+            if vault_namespace_from_env is not None:
+                connection_dict["VAULT_NAMESPACE"] = vault_namespace_from_env
+
+            user_connection_dir = "/tmp/secrets_sync_agent"
+
+            if not os.path.isdir(user_connection_dir):
+                os.mkdir(user_connection_dir, 0o755)
+
+            user_connection_file = os.path.join(user_connection_dir,'vault_connection_info.yaml')
+
+            with open(user_connection_file, 'w') as f:
+                yaml.dump(connection_dict, f)
+            
+
+
+
+         # {"VAULT_ADDR": "ayz.com","VAULT_ROLE": "rolename"}
+         # write to a file (/tmp/secrets-sync-agent/connection_info.yaml) --> user_connection_file variable 
+         #
+
+
+
 
         log.debug("Program will use below to get the details in following precedence")
 
@@ -157,7 +194,7 @@ class GetUserConfigs:
                     log.info(
                         "Reading configuration from configmap: {}".format(eval_user_cm)
                     )
-                    globals()[type + "_details"] = GetUserConfigs.getAdminConfig(eval_user_cm, namespace)
+                    globals()[type + "_details"] = GetUserConfigs.get_configmap_contents(eval_user_cm, namespace)
 
                 elif (
                     not os.path.isfile(eval_default_file)
@@ -173,7 +210,7 @@ class GetUserConfigs:
                     log.info(
                         "Reading configuration from configmap: {}".format(eval_user_cm)
                     )
-                    globals()[type + "_details"] = GetUserConfigs.getAdminConfig(eval_user_cm, namespace)
+                    globals()[type + "_details"] = GetUserConfigs.get_configmap_contents(eval_user_cm, namespace)
 
                 elif (
                     os.path.isfile(eval_default_file)
@@ -187,7 +224,7 @@ class GetUserConfigs:
                         )
                     )
                     log.info("Reading configuration from file: {}".format(eval_user_file))
-                    globals()[type + "_details"] = GetUserConfigs.readDataFromFile(eval_user_file)
+                    globals()[type + "_details"] = GetUserConfigs.read_data_from_file(eval_user_file)
                     
 
                 elif (
@@ -202,7 +239,7 @@ class GetUserConfigs:
                         )
                     )
                     log.info("Reading configuration from file: {}".format(eval_user_file))
-                    globals()[type + "_details"] = GetUserConfigs.readDataFromFile(eval_user_file)
+                    globals()[type + "_details"] = GetUserConfigs.read_data_from_file(eval_user_file)
 
                 elif (
                     os.path.isfile(eval_default_file)
@@ -218,7 +255,7 @@ class GetUserConfigs:
                     log.info(
                         "Reading configuration from file: {}".format(eval_default_file)
                     )
-                    globals()[type + "_details"] = GetUserConfigs.readDataFromFile(eval_default_file)
+                    globals()[type + "_details"] = GetUserConfigs.read_data_from_file(eval_default_file)
 
                 else:
                     log.error(

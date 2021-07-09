@@ -20,7 +20,8 @@ from agent.utils.write_secrets_data_to_file import write_to_file
 import agent.utils.get_user_configs as user_configs
 import agent.utils.validate_configurations as validate
 import agent.utils.get_env as get_env
-import agent.utils.logo as logo 
+import agent.utils.logo as logo
+
 
 # Global Log settings
 log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
@@ -49,20 +50,19 @@ class SecretsAgent:
 
         log.info("Get environment variables")
 
-        # Load configurations from environment           
-        userEnvConfig = get_env.GetEnv.getFromEnv()
+        # Load configurations from environment       
+        userEnvConfig = get_env.GetEnv.get_from_env()
 
         log.debug("Environment variables dictionary:")
-        log.debug(json.dumps(userEnvConfig,indent=4))
+        log.debug(json.dumps(userEnvConfig, indent=4))
 
         log.info("Get OpenShift namespace")
         namespace = get_namespace_name()
         log.debug("Default Namespace: {}".format(namespace))
 
         # Call function to get service account token
+        # to authenticate and generate KubeAuth token
         log.info("Get OpenShift service account token")
-
-        #saToken = getSAToken()
         sa_token = get_sa_token()
 
         log.debug("OpenShift Service Account Token: " + sa_token)
