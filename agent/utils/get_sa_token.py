@@ -2,11 +2,6 @@
 # import logging.config
 import sys
 
-#from agent.utils.define_vars import *
-
-# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-# log = logging.getLogger("agent")
-
 from agent.utils.get_logger import get_module_logger
 
 log = get_module_logger(__name__)

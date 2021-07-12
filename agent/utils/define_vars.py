@@ -1,6 +1,6 @@
 import os
 import sys
-import logging
+
 import agent.utils.get_env as get_env
 import agent.utils.get_user_configs as user_configs
 import agent.utils.validate_configurations as validate
@@ -13,8 +13,8 @@ if "KUBERNETES_SERVICE_HOST" in os.environ and "KUBERNETES_SERVICE_PORT" in os.e
 else:
     K8S_API_ENDPOINT = "https://api.cluster2.openshifthappens.com:6443"
 
-k8s_ca_cert = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 
+k8s_ca_cert = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
 vault_ca_cert = "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem"
 
 
@@ -23,9 +23,6 @@ if os.path.exists(vault_ca_cert):
     vault_ssl_verify = vault_ca_cert
 else: 
     vault_ca_cert = False
-
-## Need to get this from configmap
-secret_path = "v1/secret/data/vadim-test"
 
 
 userEnvConfig = get_env.GetEnv.get_from_env()
@@ -43,6 +40,11 @@ validate_obj.validate_user_config()
 
 # Merge the two dicts
 vault_configmap_contents = {**connection_details, **secrets_details}
+
+
+
+## Need to get this from configmap
+secret_path = vault_configmap_contents.get("KUBE_SECRETS_MGMT_CREDS_PATH")
 
 vault_url = vault_configmap_contents.get("VAULT_ADDR")
 
@@ -77,13 +79,3 @@ else:
         vault_configmap_contents.get("VAULT_ROLE"),
         sa_token,
     )
-
-# # Global Log settings
-# log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
-# logging.basicConfig(
-#     stream=sys.stdout, format="[%(asctime)s] [%(levelname)s] - %(message)s"
-# )
-# log = logging.getLogger()
-# level = logging.getLevelName(log_level)
-# log.setLevel(log_level)
-

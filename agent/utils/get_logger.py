@@ -1,5 +1,3 @@
-# mymodule/__init__.py
-
 import logging
 import os
 

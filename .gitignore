@@ -1,0 +1,3 @@
+agent/hvault/__pycache__/*
+agent/k8_utils/__pycache__/*
+agent/utils/__pycache__/*

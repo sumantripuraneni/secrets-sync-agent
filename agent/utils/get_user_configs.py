@@ -1,15 +1,8 @@
-# import logging
-# import logging.config
 import sys
 import yaml
 import json
 import os
 
-from agent.k8_utils.read_from_configmap import *
-from agent.utils.define_vars import *
-
-# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-# log = logging.getLogger("agent")
 from agent.utils.get_logger import get_module_logger
 
 log = get_module_logger(__name__)
@@ -37,24 +30,6 @@ class GetUserConfigs:
             log.error("Error while loading yaml file: {}".format(e))
             sys.exit(1)
 
-    # Function to read the configuration values from OpenShift ConfigMap
-    @staticmethod
-    def get_configmap_contents(configMapName, namespace):
-
-        '''Function to read the configuration values from OpenShift ConfigMap'''
-
-        try:
-            configMapData = read_data_from_configmap(configMapName, namespace)
-            controllerConfig = yaml.full_load(configMapData)
-
-            #validateConfig(controllerConfig)
-
-            return controllerConfig
-
-        except Exception as e:
-            log.error("Error while reading configmap: {}".format(e))
-            sys.exit(1)
-
 
     def process_input(self) -> dict:
 
@@ -63,9 +38,7 @@ class GetUserConfigs:
         default_connection_file             = self.user_env_config.get("DEFAULT_CONNECTION_INFO_FILE")
         default_secrets_file                = self.user_env_config.get("DEFAULT_SECRETS_RETRIEVAL_INFO_FILE")
         user_connection_file                = self.user_env_config.get("VAULT_CONNECTION_INFO_CONFIG_FILE")
-        user_connection_cm                  = self.user_env_config.get("VAULT_CONNECTION_INFO_CONFIGMAP_NAME")
         user_secrets_file                   = self.user_env_config.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIG_FILE")
-        user_secrets_cm                     = self.user_env_config.get("VAULT_SECRETS_RETRIEVAL_INFO_CONFIGMAP_NAME")
         user_connection_from_env            = self.user_env_config.get("CONNECTION_INFO_FROM_ENV")
         user_secrets_from_env               = self.user_env_config.get("SECRETS_RETRIEVAL_INFO_FROM_ENV")
         vault_addr_from_env                 = self.user_env_config.get("VAULT_ADDR")
@@ -95,16 +68,6 @@ class GetUserConfigs:
             with open(user_connection_file, 'w') as f:
                 yaml.dump(connection_dict, f)
             
-
-
-
-         # {"VAULT_ADDR": "ayz.com","VAULT_ROLE": "rolename"}
-         # write to a file (/tmp/secrets-sync-agent/connection_info.yaml) --> user_connection_file variable 
-         #
-
-
-
-
         log.debug("Program will use below to get the details in following precedence")
 
         log.debug(
@@ -137,22 +100,12 @@ class GetUserConfigs:
                 user_connection_file
             )
         )
-        log.debug(
-            "User provided vault connection details configmap: {}".format(
-                user_connection_cm
-            )
-        )
-        log.debug(
-            "User provided vault secrets retrieval details configmap: {}".format(
-                user_secrets_cm
-            )
-        )
 
         for type in ["connection", "secrets"]:
 
             eval_default_file = eval("default_" + type + "_file")
             eval_user_file = eval("user_" + type + "_file")
-            eval_user_cm = eval("user_" + type + "_cm")
+            # eval_user_cm = eval("user_" + type + "_cm")
 
             log.info("Trying to get vault {} details".format(type))
 
@@ -183,42 +136,10 @@ class GetUserConfigs:
                                     ] 
                                 }
 
-                elif (
-                    os.path.isfile(eval_default_file)
-                    and eval_user_file
-                    and eval_user_cm
-                ):
-
-                    log.debug(
-                        "Based on precedence reading {} details from user provided configmap: {}".format(
-                            type, eval_user_cm
-                        )
-                    )
-                    log.info(
-                        "Reading configuration from configmap: {}".format(eval_user_cm)
-                    )
-                    globals()[type + "_details"] = GetUserConfigs.get_configmap_contents(eval_user_cm, namespace)
-
-                elif (
-                    not os.path.isfile(eval_default_file)
-                    and eval_user_file
-                    and eval_user_cm
-                ):
-
-                    log.debug(
-                        "Based on precedence reading {} details from user provided configmap: {}".format(
-                            type, eval_user_cm
-                        )
-                    )
-                    log.info(
-                        "Reading configuration from configmap: {}".format(eval_user_cm)
-                    )
-                    globals()[type + "_details"] = GetUserConfigs.get_configmap_contents(eval_user_cm, namespace)
 
                 elif (
                     os.path.isfile(eval_default_file)
                     and eval_user_file
-                    and not eval_user_cm
                 ):
 
                     log.debug(
@@ -229,11 +150,9 @@ class GetUserConfigs:
                     log.info("Reading configuration from file: {}".format(eval_user_file))
                     globals()[type + "_details"] = GetUserConfigs.read_data_from_file(eval_user_file)
                     
-
                 elif (
                     not os.path.isfile(eval_default_file)
                     and eval_user_file
-                    and not eval_user_cm
                 ):
 
                     log.debug(
@@ -247,8 +166,7 @@ class GetUserConfigs:
                 elif (
                     os.path.isfile(eval_default_file)
                     and not eval_user_file
-                    and not eval_user_cm
-                ):
+                    ):
 
                     log.debug(
                         "Based on precedence reading {} details from default file: {}".format(

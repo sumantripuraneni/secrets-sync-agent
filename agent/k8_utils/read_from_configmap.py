@@ -2,11 +2,7 @@
 # import logging.config
 import sys
 
-#from agent.utils.define_vars import *
 from agent.k8_utils.get_k8_client import get_client
-
-# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-# log = logging.getLogger("agent")
 from agent.utils.get_logger import get_module_logger
 
 log = get_module_logger(__name__)

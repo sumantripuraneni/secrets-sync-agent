@@ -1,17 +1,11 @@
 from pydantic import BaseModel, HttpUrl, ValidationError, validator
 from typing import Optional, List, Literal
-# import logging
-# import logging.config
 import sys
 
-from agent.utils.define_vars import *
-
-# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-# log = logging.getLogger("agent")
-
 from agent.utils.get_logger import get_module_logger
-
 log = get_module_logger(__name__)
+
+
 # Class definition to validate vault connection configuration
 class VaultConnectionModel(BaseModel):
 
@@ -20,6 +14,7 @@ class VaultConnectionModel(BaseModel):
     VAULT_ADDR: HttpUrl
     VAULT_LOGIN_ENDPOINT: str
     VAULT_ROLE: str
+    KUBE_SECRETS_MGMT_CREDS_PATH: Optional[str]
 
 
 # Class definition to validate list of KUBE_SECRETS

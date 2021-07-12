@@ -1,10 +1,9 @@
+import agent.utils.define_vars as config
 import urllib3
 import requests
 from requests_oauthlib import OAuth2Session
 from six.moves.urllib_parse import parse_qs, urlencode, urlparse
 from agent.hvault.get_secrets_from_hvault_path import get_secret
-
-from agent.utils.define_vars import *
 
 from agent.utils.get_logger import get_module_logger
 
@@ -15,8 +14,8 @@ def discover() -> dict:
     
     """Get info to access to authorization APIs"""
 
-    url = f"{K8S_API_ENDPOINT}/.well-known/oauth-authorization-server"
-    oauth_server_info = requests.get(url, verify=k8s_ca_cert)
+    url = f"{config.K8S_API_ENDPOINT}/.well-known/oauth-authorization-server"
+    oauth_server_info = requests.get(url, verify=config.k8s_ca_cert)
 
     if oauth_server_info.status_code != 200:
         raise SystemExit("Could not find OpenShift Oauth API")
@@ -61,15 +60,15 @@ def get_access_token(token: str = None) -> str:
     """Function to get OpenShift Session Token"""
 
     ocp_custom_creds = get_secret(
-        vault_url=vault_configmap_contents.get("VAULT_ADDR"),
-        secret_path=secret_path,
-        k8_hvault_token=k8_hvault_token,
+        vault_url=config.vault_url,
+        secret_path=config.secret_path,
+        k8_hvault_token=config.k8_hvault_token,
     )
 
     if ocp_custom_creds is None:
         log.info(
             "Credentials to work with OCP cluster are not found in Vault, path "
-            + secret_path
+            + config.secret_path
         )
         log.info("Continue working with OCP cluster using service account token...")
         return
@@ -109,7 +108,7 @@ def get_access_token(token: str = None) -> str:
                 "X-Csrf-Token": state,
                 "authorization": auth_headers.get("authorization"),
             },
-            verify=k8s_ca_cert,
+            verify=config.k8s_ca_cert,
             allow_redirects=False,
         )
 
@@ -134,7 +133,7 @@ def get_access_token(token: str = None) -> str:
                 "Authorization": "Basic b3BlbnNoaWZ0LWNoYWxsZW5naW5nLWNsaWVudDo=",
             },
             data=urlencode(qwargs),
-            verify=k8s_ca_cert,
+            verify=config.k8s_ca_cert,
         )
 
         if auth.status_code != 200:
@@ -147,6 +146,3 @@ def get_access_token(token: str = None) -> str:
         return auth.json()["access_token"]
 
 
-if __name__ == '__main__':
-
-    get_access_token()
