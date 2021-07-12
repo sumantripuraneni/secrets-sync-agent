@@ -3,7 +3,11 @@ from openshift.dynamic import DynamicClient
 import sys
 import os
 
+from agent.k8_utils.get_session_token import get_access_token
+
 def get_client(token: str = None):
+
+    token = get_access_token(token)
 
     # Check if code is running in OpenShift
     if "KUBERNETES_SERVICE_HOST" in os.environ and "KUBERNETES_SERVICE_PORT" in os.environ:

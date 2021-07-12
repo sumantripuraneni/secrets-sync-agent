@@ -1,15 +1,19 @@
 import json
-import logging
-import logging.config
+# import logging
+# import logging.config
 import jinja2
 import configparser
 
 from agent.utils.base64_conversions import toBase64
 from agent.k8_utils.render_jinja2_template import render_jinja2_template
 
+from agent.utils.define_vars import *
 
-logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-log = logging.getLogger("agent")
+from agent.utils.get_logger import get_module_logger
+
+log = get_module_logger(__name__)
+# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+# log = logging.getLogger("agent")
 
 
 # Function to create opaque secret definition based on temmplate

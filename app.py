@@ -21,17 +21,11 @@ import agent.utils.get_user_configs as user_configs
 import agent.utils.validate_configurations as validate
 import agent.utils.get_env as get_env
 import agent.utils.logo as logo
+from agent.utils.define_vars import *
 
+from agent.utils.get_logger import get_module_logger
 
-# Global Log settings
-log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
-logging.basicConfig(
-    stream=sys.stdout, format="[%(asctime)s] [%(levelname)s] - %(message)s"
-)
-log = logging.getLogger()
-level = logging.getLevelName(log_level)
-log.setLevel(log_level)
-
+log = get_module_logger(__name__)
 
 # TLS cert for secure communication with vault
 ### ADD TLS here
@@ -45,71 +39,27 @@ class SecretsAgent:
         # Print ASCII Art Banner
         print(logo.logo)
 
+        #global k8_hvault_token, vault_configmap_contents
+
         # Print effective log level
         log.info("Log Level: {}".format(logging.getLevelName(log.getEffectiveLevel())))
-
-        log.info("Get environment variables")
-
-        # Load configurations from environment       
-        userEnvConfig = get_env.GetEnv.get_from_env()
 
         log.debug("Environment variables dictionary:")
         log.debug(json.dumps(userEnvConfig, indent=4))
 
         log.info("Get OpenShift namespace")
-        namespace = get_namespace_name()
-        log.debug("Default Namespace: {}".format(namespace))
+        log.debug("Default Namespace: {}".format(v_namespace))
 
-        # Call function to get service account token
-        # to authenticate and generate KubeAuth token
-        log.info("Get OpenShift service account token")
-        sa_token = get_sa_token()
 
         log.debug("OpenShift Service Account Token: " + sa_token)
 
         while True:
 
-            # Call function processInput to get the hashi vault connection detail
-            # and secrets retrieval details based on input
-            object_get_user_configs = user_configs.GetUserConfigs(userEnvConfig, namespace)
-            connection_details, secrets_details = object_get_user_configs.process_input()
-
-            # Validate Connection configuration
-            validate_obj = validate.ValidateUserConfig(connection_details, secrets_details)
-            validate_obj.validate_user_config()
-
-            # Merge the two dicts
-            vault_configmap_contents = {**connection_details, **secrets_details}
             log.debug("Merged configuration:")
             log.debug(json.dumps(vault_configmap_contents, indent=4))
 
-            # Add trailing '/' is to hashi-vault-url if not exists
-            if not vault_configmap_contents.get("VAULT_ADDR").endswith("/"):
-                vault_configmap_contents["VAULT_ADDR"] = (
-                    vault_configmap_contents.get("VAULT_ADDR") + "/"
-                )         
-
             # Call function to get KubeAuth token
             log.info("Get the Kubernetes auth token from vault")
-
-            if "VAULT_NAMESPACE" in vault_configmap_contents.keys():
-
-                k8_hvault_token = get_vault_kube_auth_token(
-                    vault_configmap_contents.get("VAULT_ADDR"),
-                    vault_configmap_contents.get("VAULT_LOGIN_ENDPOINT"),
-                    vault_configmap_contents.get("VAULT_ROLE"),
-                    sa_token,
-                    vault_configmap_contents.get("VAULT_NAMESPACE")
-                )
-
-            else:
-
-                k8_hvault_token = get_vault_kube_auth_token(
-                    vault_configmap_contents.get("VAULT_ADDR"),
-                    vault_configmap_contents.get("VAULT_LOGIN_ENDPOINT"),
-                    vault_configmap_contents.get("VAULT_ROLE"),
-                    sa_token
-                )
 
             log.debug("Got vault KubeAuth token: " + k8_hvault_token)
 
@@ -126,7 +76,7 @@ class SecretsAgent:
 
                     # get namespace if namespace is defined as key,
                     # if NAMESPACE key not mentioned, use the namespace (as default) this process is running
-                    namespace = i_secret.get("NAMESPACE", namespace)
+                    namespace = i_secret.get("NAMESPACE", v_namespace)
 
                     secret_from_hvault = get_secret(
                         vault_configmap_contents.get("VAULT_ADDR"),
@@ -340,12 +290,14 @@ class SecretsAgent:
                             )
                             write_to_file(secret_from_hvault["data"], i_secret, namespace)
 
+
             # Exit gracefully if RUN_ONCE flag is set to true
             if userEnvConfig.get("RUN_ONCE") in ["true", "yes", "1"]:
                 log.info("RUN_ONCE:{} flag was set in environment".format(userEnvConfig.get("RUN_ONCE")))
                 log.info("Secrets creation completed")
                 log.info("Gracefully exciting")
                 sys.exit(0)
+
 
             # Refresh Kubernetes secrets
             # See if its provided in environment or in configmaps
@@ -360,7 +312,6 @@ class SecretsAgent:
             )
 
             time.sleep(int(refresh_time))
-
 
 if __name__ == "__main__":
     SecretsAgent.run()

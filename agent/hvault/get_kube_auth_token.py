@@ -1,17 +1,19 @@
 
-import logging
-import logging.config
+# import logging
+# import logging.config
 import sys
 import requests
 import json
+#from agent.utils.define_vars import *
 
+# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+# log = logging.getLogger("agent")
+from agent.utils.get_logger import get_module_logger
 
-logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-log = logging.getLogger("agent")
-
+log = get_module_logger(__name__)
 
 def get_vault_kube_auth_token(
-    vault_url: str, login_ep: str, role_name: str, 
+    vault_url: str, login_ep: str, role_name: str,
     k8_token: str, vault_login_namespace: str = None
 ) -> str:
 

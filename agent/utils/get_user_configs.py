@@ -1,15 +1,18 @@
-import logging
-import logging.config
+# import logging
+# import logging.config
 import sys
 import yaml
 import json
 import os
 
-from agent.k8_utils.read_from_configmap import read_data_from_configmap
+from agent.k8_utils.read_from_configmap import *
+from agent.utils.define_vars import *
 
-logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-log = logging.getLogger("agent")
+# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+# log = logging.getLogger("agent")
+from agent.utils.get_logger import get_module_logger
 
+log = get_module_logger(__name__)
 
 class GetUserConfigs:
 

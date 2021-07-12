@@ -1,9 +1,14 @@
 import base64
-import logging
-import logging.config
+# import logging
+# import logging.config
 
-logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-log = logging.getLogger("agent")
+# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+# log = logging.getLogger("agent")
+from agent.utils.define_vars import *
+
+from agent.utils.get_logger import get_module_logger
+
+log = get_module_logger(__name__)
 
 
 # Function to check if a string in base64 encoded or not

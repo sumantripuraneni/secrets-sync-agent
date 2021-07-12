@@ -1,13 +1,17 @@
-import logging
-import logging.config
+# import logging
+# import logging.config
 import sys
 import requests
 import json
 from agent.k8_utils.get_k8_client import get_client
+from agent.utils.define_vars import *
 
+from agent.utils.get_logger import get_module_logger
 
-logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-log = logging.getLogger("agent")
+log = get_module_logger(__name__)
+
+# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+# log = logging.getLogger("agent")
 
 
 # Function to create secret in ocp
@@ -42,13 +46,13 @@ def create_secret(secret_body: dict, secret_name: str, secret_type: str, namespa
             )
         )
 
-        if secre_type == "dockercfg":
+        if secret_type == "dockercfg":
 
             secret_from_vault = secret_body["data"][".dockerconfigjson"]
             secret_from_ocp   = v1_sec.get(namespace=namespace, name=secret_name)
             secret_from_ocp   = secret_from_ocp["data"][".dockerconfigjson"]
 
-        elif secre_type in ["opaque", "tls", "ssh-auth"]:
+        elif secret_type in ["opaque", "tls", "ssh-auth"]:
             secret_from_vault = dict(secret_body.get("data"))
             secret_from_ocp   = v1_sec.get(namespace=namespace, name=secret_name)
             secret_from_ocp   = dict(secret_from_ocp.get("data"))

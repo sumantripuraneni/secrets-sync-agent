@@ -1,14 +1,18 @@
 import json
-import logging
-import logging.config
+# import logging
+# import logging.config
 import sys
 
 from agent.utils.base64_conversions import toBase64
 from agent.utils.base64_conversions import isBase64
+from agent.utils.define_vars import *
 
+from agent.utils.get_logger import get_module_logger
 
-logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-log = logging.getLogger("agent")
+log = get_module_logger(__name__)
+
+# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+# log = logging.getLogger("agent")
 
 # Function to create SSH Auth Secret Definition
 def create_ssh_auth_secret_body(secret_data: dict, secret_name: str) -> dict:

@@ -1,9 +1,15 @@
-import logging
-import logging.config
+# import logging
+# import logging.config
 import sys
 
-logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-log = logging.getLogger("agent")
+#from agent.utils.define_vars import *
+
+# logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+# log = logging.getLogger("agent")
+
+from agent.utils.get_logger import get_module_logger
+
+log = get_module_logger(__name__)
 
 def get_sa_token() -> str:
     '''Function to get mounted Service Account token'''
@@ -17,5 +23,4 @@ def get_sa_token() -> str:
     except (OSError, IOError) as e:
         log.error("Error reading from file: {}".format(e))
         sys.exit(1)
-        print("Error")
 
