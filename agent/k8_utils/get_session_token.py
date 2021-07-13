@@ -4,6 +4,7 @@ import requests
 from requests_oauthlib import OAuth2Session
 from six.moves.urllib_parse import parse_qs, urlencode, urlparse
 from agent.hvault.get_secrets_from_hvault_path import get_secret
+from agent.utils.get_sa_token import get_sa_token
 
 from agent.utils.get_logger import get_module_logger
 
@@ -11,7 +12,7 @@ log = get_module_logger(__name__)
 
 
 def discover() -> dict:
-    
+
     """Get info to access to authorization APIs"""
 
     url = f"{config.K8S_API_ENDPOINT}/.well-known/oauth-authorization-server"
@@ -59,90 +60,108 @@ def get_access_token(token: str = None) -> str:
 
     """Function to get OpenShift Session Token"""
 
-    ocp_custom_creds = get_secret(
-        vault_url=config.vault_url,
-        secret_path=config.secret_path,
-        k8_hvault_token=config.k8_hvault_token,
-    )
+    # When KUBE_SECRETS_MGMT_CREDS_PATH is provided
+    if config.secret_path:
 
-    if ocp_custom_creds is None:
         log.info(
-            "Credentials to work with OCP cluster are not found in Vault, path "
-            + config.secret_path
+            "Using credentails to generate session token from path: {}".format(
+                config.secret_path
+            )
         )
-        log.info("Continue working with OCP cluster using service account token...")
-        return
+
+        ocp_custom_creds = get_secret(
+            vault_url=config.vault_url,
+            secret_path=config.secret_path,
+            k8_hvault_token=config.k8_hvault_token,
+        )
+
+        if ocp_custom_creds is None:
+            log.info(
+                "Credentials to work with OCP cluster are not found in Vault, path "
+                + config.secret_path
+            )
+            log.info("Continue working with OCP cluster using service account token...")
+            return None
+        else:
+            ocp_username = ocp_custom_creds["data"]["username"]
+            ocp_password = ocp_custom_creds["data"]["password"]
+
+        token_valid = validate_existing_token(token)
+
+        if not token_valid:
+
+            log.info(
+                "Existing token is not defined or doesn't work, need to regenerate a new one"
+            )
+
+            oauth_server_info = discover()
+
+            log.info(
+                "Using following endpoint to get the token - "
+                + oauth_server_info["token_endpoint"]
+            )
+
+            openshift_token_endpoint = oauth_server_info["token_endpoint"]
+            openshift_oauth = OAuth2Session(client_id="openshift-challenging-client")
+            authorization_url, state = openshift_oauth.authorization_url(
+                oauth_server_info["authorization_endpoint"],
+                state="1",
+                code_challenge_method="s256",
+            )
+
+            auth_headers = urllib3.make_headers(
+                basic_auth=f"{ocp_username}:{ocp_password}"
+            )
+
+            # Request authorization code using basic credentials
+            challenge_response = openshift_oauth.get(
+                authorization_url,
+                headers={
+                    "X-Csrf-Token": state,
+                    "authorization": auth_headers.get("authorization"),
+                },
+                verify=config.k8s_ca_cert,
+                allow_redirects=False,
+            )
+
+            if challenge_response.status_code != 302:
+                raise SystemExit("Authorization failed (Wrong credentials?)")
+
+            qwargs = {
+                k: v[0]
+                for k, v in parse_qs(
+                    urlparse(challenge_response.headers["Location"]).query
+                ).items()
+            }
+            qwargs["grant_type"] = "authorization_code"
+
+            # Using authorization code in the Location header of the previous request, request a token
+            auth = openshift_oauth.post(
+                openshift_token_endpoint,
+                headers={
+                    "Accept": "application/json",
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    # base64 encoded 'openshift-challenging-client:'
+                    "Authorization": "Basic b3BlbnNoaWZ0LWNoYWxsZW5naW5nLWNsaWVudDo=",
+                },
+                data=urlencode(qwargs),
+                verify=config.k8s_ca_cert,
+            )
+
+            if auth.status_code != 200:
+                raise SystemExit("Failed to obtain authorization token")
+
+            log.info(
+                "Authorization token to work with OpenShift cluster was successfully obtained"
+            )
+
+            return auth.json()["access_token"]
+
+    # When KUBE_SECRETS_MGMT_CREDS_PATH is not provided
+    # use the associated SA token
     else:
-        ocp_username = ocp_custom_creds["data"]["username"]
-        ocp_password = ocp_custom_creds["data"]["password"]
-
-    token_valid = validate_existing_token(token)
-
-    if not token_valid:
 
         log.info(
-            "Existing token is not defined or doesn't work, need to regenerate a new one"
+            "KUBE_SECRETS_MGMT_CREDS_PATH not provided, so continue working with service account token"
         )
-
-        oauth_server_info = discover()
-
-        log.info(
-            "Using following endpoint to get the token - "
-            + oauth_server_info["token_endpoint"]
-        )
-
-        openshift_token_endpoint = oauth_server_info["token_endpoint"]
-        openshift_oauth = OAuth2Session(client_id="openshift-challenging-client")
-        authorization_url, state = openshift_oauth.authorization_url(
-            oauth_server_info["authorization_endpoint"],
-            state="1",
-            code_challenge_method="s256",
-        )
-
-        auth_headers = urllib3.make_headers(basic_auth=f"{ocp_username}:{ocp_password}")
-
-        # Request authorization code using basic credentials
-        challenge_response = openshift_oauth.get(
-            authorization_url,
-            headers={
-                "X-Csrf-Token": state,
-                "authorization": auth_headers.get("authorization"),
-            },
-            verify=config.k8s_ca_cert,
-            allow_redirects=False,
-        )
-
-        if challenge_response.status_code != 302:
-            raise SystemExit("Authorization failed (Wrong credentials?)")
-
-        qwargs = {
-            k: v[0]
-            for k, v in parse_qs(
-                urlparse(challenge_response.headers["Location"]).query
-            ).items()
-        }
-        qwargs["grant_type"] = "authorization_code"
-
-        # Using authorization code in the Location header of the previous request, request a token
-        auth = openshift_oauth.post(
-            openshift_token_endpoint,
-            headers={
-                "Accept": "application/json",
-                "Content-Type": "application/x-www-form-urlencoded",
-                # base64 encoded 'openshift-challenging-client:'
-                "Authorization": "Basic b3BlbnNoaWZ0LWNoYWxsZW5naW5nLWNsaWVudDo=",
-            },
-            data=urlencode(qwargs),
-            verify=config.k8s_ca_cert,
-        )
-
-        if auth.status_code != 200:
-            raise SystemExit("Failed to obtain authorization token")
-
-        log.info(
-            "Authorization token to work with OpenShift cluster was successfully obtained"
-        )
-
-        return auth.json()["access_token"]
-
-
+        return None

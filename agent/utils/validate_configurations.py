@@ -14,6 +14,7 @@ class VaultConnectionModel(BaseModel):
     VAULT_ADDR: HttpUrl
     VAULT_LOGIN_ENDPOINT: str
     VAULT_ROLE: str
+    VAULT_NAMESPACE: Optional[str]
     KUBE_SECRETS_MGMT_CREDS_PATH: Optional[str]
 
 

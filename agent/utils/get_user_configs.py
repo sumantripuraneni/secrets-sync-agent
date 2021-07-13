@@ -45,6 +45,7 @@ class GetUserConfigs:
         vault_role_from_env                 = self.user_env_config.get("VAULT_ROLE")
         vault_namespace_from_env            = self.user_env_config.get("VAULT_NAMESPACE")
         vault_login_endpoint_from_env       = self.user_env_config.get("VAULT_LOGIN_ENDPOINT")
+        kube_secrets_mgmt_creds_path        = self.user_env_config.get("KUBE_SECRETS_MGMT_CREDS_PATH")
         namespace                           = self.namespace
 
 
@@ -52,7 +53,8 @@ class GetUserConfigs:
             connection_dict = {
                 "VAULT_ADDR": vault_addr_from_env,
                 "VAULT_ROLE": vault_role_from_env,
-                "VAULT_LOGIN_ENDPOINT": vault_login_endpoint_from_env
+                "VAULT_LOGIN_ENDPOINT": vault_login_endpoint_from_env,
+                "KUBE_SECRETS_MGMT_CREDS_PATH": kube_secrets_mgmt_creds_path
             }
 
             if vault_namespace_from_env is not None:

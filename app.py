@@ -20,6 +20,13 @@ log.info("Log Level: {}".format(logging.getLevelName(log.getEffectiveLevel())))
 
 
 # Import custom modules
+from agent.utils.define_vars import (
+    userEnvConfig,
+    v_namespace,
+    sa_token,
+    vault_configmap_contents,
+    k8_hvault_token,
+)
 from agent.hvault.get_secrets_from_hvault_path import get_secret
 from agent.k8_utils.create_image_pull_secret_body import create_image_pull_secret_body
 from agent.k8_utils.create_opaque_secret_body import create_opaque_secret_body
@@ -30,13 +37,6 @@ from agent.k8_utils.create_ssh_secret_body import create_ssh_auth_secret_body
 from agent.k8_utils.create_tls_secret_body import create_tls_secret_body
 from agent.k8_utils.create_k8_secret import create_secret
 from agent.utils.write_secrets_data_to_file import write_to_file
-from agent.utils.define_vars import (
-    userEnvConfig,
-    v_namespace,
-    sa_token,
-    vault_configmap_contents,
-    k8_hvault_token,
-)
 
 
 # Main class

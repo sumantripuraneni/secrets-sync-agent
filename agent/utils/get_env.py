@@ -59,4 +59,6 @@ class GetEnv:
 
         config["VAULT_LOGIN_ENDPOINT"] = os.environ.get("VAULT_LOGIN_ENDPOINT")
 
+        config["KUBE_SECRETS_MGMT_CREDS_PATH"] = os.environ.get("KUBE_SECRETS_MGMT_CREDS_PATH")
+
         return config
