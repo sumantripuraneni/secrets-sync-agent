@@ -38,7 +38,7 @@ def validate_existing_token(token: str) -> bool:
                 "content-type": "application/json",
             }
             ocp_healthz_query = requests.get(
-                ocp_healthz_url, verify=k8s_ca_cert, headers=ocp_healthz_headers
+                ocp_healthz_url, verify=config.k8s_ca_cert, headers=ocp_healthz_headers
             )
         else:
             log.debug("Token is not defined, need to generate it")
@@ -109,11 +109,22 @@ def get_access_token(token: str = None) -> str:
                 code_challenge_method="s256",
             )
 
+            authorization_url = requests.head(
+                authorization_url, verify=config.k8s_ca_cert, allow_redirects=True
+            ).url
+
+            log.debug("Authorization URL: {}".format(authorization_url))
+            log.debug("State: {}".format(state))
+
             auth_headers = urllib3.make_headers(
                 basic_auth=f"{ocp_username}:{ocp_password}"
             )
 
+            log.debug("Authorization headers created: {}".format(auth_headers))
+
             # Request authorization code using basic credentials
+            log.debug("get OAuth challenge response")
+
             challenge_response = openshift_oauth.get(
                 authorization_url,
                 headers={
@@ -127,6 +138,13 @@ def get_access_token(token: str = None) -> str:
             if challenge_response.status_code != 302:
                 raise SystemExit("Authorization failed (Wrong credentials?)")
 
+            log.debug("Got OAuth challenge response")
+            log.debug(
+                "Challenge Response Header: {}".format(challenge_response.headers)
+            )
+
+            log.debug("Redirect URL: {}".format(challenge_response.headers["Location"]))
+
             qwargs = {
                 k: v[0]
                 for k, v in parse_qs(
@@ -134,6 +152,9 @@ def get_access_token(token: str = None) -> str:
                 ).items()
             }
             qwargs["grant_type"] = "authorization_code"
+
+            log.debug("QWARGS: {}".format(qwargs))
+            log.debug("OpenShift token endpoint: {}".format(openshift_token_endpoint))
 
             # Using authorization code in the Location header of the previous request, request a token
             auth = openshift_oauth.post(

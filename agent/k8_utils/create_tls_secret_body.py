@@ -52,7 +52,7 @@ def create_tls_secret_body(secret_data: dict, secret_name: str) -> dict:
 
     # Check if the data is already encoded to base64 or not
     if isBase64(secret_data["data"]["tls.crt"]) and isBase64(
-        secret_data["data"]["tls.crt"]
+        secret_data["data"]["tls.key"]
     ):
         tlsCrt = secret_data["data"]["tls.crt"]
         tlsKey = secret_data["data"]["tls.key"]

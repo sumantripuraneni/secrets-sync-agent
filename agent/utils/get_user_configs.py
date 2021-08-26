@@ -50,6 +50,7 @@ class GetUserConfigs:
 
 
         if vault_addr_from_env is not None and vault_role_from_env is not None:
+            log.info("Vault connection information received from environment")
             connection_dict = {
                 "VAULT_ADDR": vault_addr_from_env,
                 "VAULT_ROLE": vault_role_from_env,
@@ -67,6 +68,7 @@ class GetUserConfigs:
 
             user_connection_file = os.path.join(user_connection_dir,'vault_connection_info.yaml')
 
+            log.info("Creating vault connection information file: {}".format(user_connection_file))
             with open(user_connection_file, 'w') as f:
                 yaml.dump(connection_dict, f)
             

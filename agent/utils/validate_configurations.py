@@ -16,6 +16,7 @@ class VaultConnectionModel(BaseModel):
     VAULT_ROLE: str
     VAULT_NAMESPACE: Optional[str]
     KUBE_SECRETS_MGMT_CREDS_PATH: Optional[str]
+    VAULT_SECRETS_REFRESH_SECONDS: Optional[str]
 
 
 # Class definition to validate list of KUBE_SECRETS
@@ -26,8 +27,20 @@ class KubeSecretsBase(BaseModel):
     VAULT_SECRET_PATH: str
     KUBERNETES_SECRET: str
     SECRET_TYPE: str
+    NAMESPACE: Optional[str]
     TEMPLATE_AS_CONFIGMAP: Optional[str]
     TEMPLATE_AS_FILE: Optional[str]
+
+    @validator("SECRET_TYPE")
+    def supported_secret_types(cls, SECRET_TYPE):
+        secret_types = ["dockercfg", "opaque", "tls", "ssh-auth"]
+        if SECRET_TYPE not in secret_types:
+            raise ValueError(
+                "Unsupported SECRET_TYPE requested. Supported secret types - {}".format(
+                    secret_types
+                )
+            )
+        return SECRET_TYPE    
 
 
 # Class definition to validate KUBE_SECRETS
@@ -46,12 +59,13 @@ class FileSecretsBase(BaseModel):
     VAULT_SECRET_PATH: str
     FILE_FORMAT: str
     TO_FILE_NAME: str
+    KEY: Optional[str]
     TEMPLATE_AS_CONFIGMAP: Optional[str]
     TEMPLATE_AS_FILE: Optional[str]
 
     @validator("FILE_FORMAT")
     def supported_file_formats(cls, FILE_FORMAT):
-        file_formats = ["json", "yaml", "ini", "txt"]
+        file_formats = ["json", "yaml", "ini", "txt", "env", "key", "template"]
         if FILE_FORMAT.lower() not in file_formats:
             raise ValueError(
                 "Unsupported FILE_FORMAT requested. Supported formats - {}".format(

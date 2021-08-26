@@ -30,20 +30,20 @@ def get_vault_kube_auth_token(
                 auth_token_url,
                 headers={"x-vault-namespace": vault_login_namespace},
                 data=json.dumps({"jwt": k8_token, "role": role_name}),
-                verify=False,
+                verify=vault_ssl_verify,
             )
         else:
             resp = requests.post(
                 auth_token_url,
                 data=json.dumps({"jwt": k8_token, "role": role_name}),
-                verify=False,
+                verify=vault_ssl_verify,
             )
 
         resp.raise_for_status()
 
     except requests.exceptions.HTTPError as e:
         log.error(
-            "Error while retriving KubeAuth token from vault: {}".format(e)
+            "Error while retrieving KubeAuth token from vault: {}".format(e)
         )
         log.error(resp.json())
         print("Error")
