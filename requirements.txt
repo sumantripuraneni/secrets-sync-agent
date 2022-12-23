@@ -3,3 +3,4 @@ PyYAML==5.4.1
 openshift==0.11.2
 configparser==5.0.1
 Jinja2==2.11.3
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
